@@ -1,16 +1,19 @@
-const utilizationBars = [54, 76, 92, 68, 55, 81];
-
-const maintenanceSeries = [
-  { x: 0, y: 72 },
-  { x: 42, y: 44 },
-  { x: 84, y: 52 },
-  { x: 126, y: 26 },
-  { x: 168, y: 42 },
-  { x: 210, y: 10 },
-  { x: 252, y: 6 },
-];
+import { useGetReportsQuery } from '../../store/apiSlice';
 
 export default function ReportsAnalytics() {
+  const { data: reportData, isLoading, error } = useGetReportsQuery();
+
+  if (isLoading) return <div className="p-8 text-white">Loading reports...</div>;
+  if (error) return <div className="p-8 text-red-400">Error loading reports</div>;
+
+  const {
+    utilizationBars = [],
+    maintenanceSeries = [],
+    mostUsedAssets = [],
+    idleAssets = [],
+    maintenanceDue = []
+  } = reportData?.data || reportData || {};
+
   const linePoints = maintenanceSeries.map((point) => `${point.x},${point.y}`).join(' ');
 
   return (
@@ -26,7 +29,7 @@ export default function ReportsAnalytics() {
             <ChartCard title="Utilization by department">
               <div className="flex h-full items-end gap-3 px-2 pt-5 pb-2">
                 {utilizationBars.map((height, index) => (
-                  <div key={height} className="flex-1 flex flex-col items-center gap-2">
+                  <div key={index} className="flex-1 flex flex-col items-center gap-2">
                     <div className="w-full max-w-10 rounded-t-md border border-[#f3d99c]/70 bg-[#5f470f] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]" style={{ height: `${height}%` }} />
                     <span className="text-[11px] text-slate-300">D{index + 1}</span>
                   </div>
@@ -48,17 +51,18 @@ export default function ReportsAnalytics() {
             <div>
               <h3 className="mb-3 text-[18px] font-semibold text-slate-100">Most used assets</h3>
               <div className="space-y-1 text-slate-300">
-                <div>Room B2: 34 booking this month</div>
-                <div>Van AF-343: 21 trips this month</div>
-                <div>Projector AF-335: 18 uses</div>
+                {mostUsedAssets.map((asset, idx) => (
+                  <div key={idx}>{asset}</div>
+                ))}
               </div>
             </div>
 
             <div>
               <h3 className="mb-3 text-[18px] font-semibold text-slate-100">Idle assets</h3>
               <div className="space-y-1 text-slate-300">
-                <div>Camera AF-0301 : unused 60+ days</div>
-                <div>chair AF-0410 : unused 45 days</div>
+                {idleAssets.map((asset, idx) => (
+                  <div key={idx}>{asset}</div>
+                ))}
               </div>
             </div>
           </div>
@@ -70,8 +74,9 @@ export default function ReportsAnalytics() {
           <div className="space-y-3 text-[15px]">
             <h3 className="text-[18px] font-semibold text-slate-100">Assets due for maintenance / nearing retirement</h3>
             <div className="space-y-1 text-slate-300">
-              <div>Forklift AF-0087 : service due in 5 days</div>
-              <div>Laptop AF-0020 : 4 years old : nearing retirement</div>
+              {maintenanceDue.map((asset, idx) => (
+                <div key={idx}>{asset}</div>
+              ))}
             </div>
 
             <button className="mt-4 rounded-lg border border-slate-500/80 bg-[#3a2725] px-8 py-2.5 text-[15px] text-slate-100 transition-colors hover:bg-[#4a332f]">
@@ -92,4 +97,5 @@ function ChartCard({ title, children }) {
     </div>
   );
 }
+
 

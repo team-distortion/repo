@@ -2,13 +2,12 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const storedToken = localStorage.getItem('token');
 const storedUser = localStorage.getItem('user');
-const storedRole = localStorage.getItem('role');
 
 const initialState = {
   user: storedUser ? JSON.parse(storedUser) : null,
-  isAuthenticated: !!storedToken,
-  role: storedRole || null, // 'Admin', 'Asset Manager', 'Department Head', 'Employee'
   token: storedToken || null,
+  isAuthenticated: !!storedToken,
+  role: storedUser ? JSON.parse(storedUser)?.role : null,
 };
 
 const authSlice = createSlice({
@@ -16,28 +15,26 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     loginSuccess(state, action) {
-      let mappedRole = action.payload.role || action.payload.user?.role;
-      if (mappedRole === 'AssetManager') mappedRole = 'Asset Manager';
-      if (mappedRole === 'DepartmentHead') mappedRole = 'Department Head';
-      
-      state.user = action.payload.user;
-      state.isAuthenticated = true;
-      state.role = mappedRole;
+      const user = { ...action.payload.user };
+      if (user.role === 'AssetManager') user.role = 'Asset Manager';
+      if (user.role === 'DepartmentHead') user.role = 'Department Head';
+
+      state.user = user;
       state.token = action.payload.token;
+      state.isAuthenticated = true;
+      state.role = user.role;
       
       localStorage.setItem('token', action.payload.token);
-      localStorage.setItem('user', JSON.stringify(action.payload.user));
-      localStorage.setItem('role', mappedRole);
+      localStorage.setItem('user', JSON.stringify(user));
     },
     logout(state) {
       state.user = null;
+      state.token = null;
       state.isAuthenticated = false;
       state.role = null;
-      state.token = null;
       
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      localStorage.removeItem('role');
     }
   }
 });

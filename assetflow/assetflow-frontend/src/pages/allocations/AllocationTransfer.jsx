@@ -1,17 +1,6 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { AlertCircle, Send } from 'lucide-react';
-
-const mockAssets = [
-  { tag: 'AF-0114', name: 'Dell laptop', holder: { name: 'Priya Shah', department: 'Engineering' }, isAllocated: true },
-  { tag: 'AF-0201', name: 'Office chair', holder: null, isAllocated: false },
-];
-
-const mockEmployees = [
-  { id: 1, name: 'Raj Kumar', department: 'Engineering' },
-  { id: 2, name: 'Arjun Nair', department: 'IT' },
-  { id: 3, name: 'Sana Iqbal', department: 'Field Ops' },
-  { id: 4, name: 'Aditi Rao', department: 'Engineering' },
-];
+import { useGetAssetsQuery, useGetUsersQuery, useCreateTransferMutation } from '../../store/apiSlice';
 
 const mockHistory = [
   { date: 'Mar 12', text: 'Allocated to Priya shah - Engineering' },
@@ -19,19 +8,46 @@ const mockHistory = [
 ];
 
 export default function AllocationTransfer() {
-  const [selectedTag, setSelectedTag] = useState('AF-0114');
-  const [transferTo, setTransferTo] = useState('');
+  const [selectedAssetId, setSelectedAssetId] = useState('');
+  const [transferToId, setTransferToId] = useState('');
   const [reason, setReason] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
-  const selectedAsset = mockAssets.find((a) => a.tag === selectedTag) ?? mockAssets[0];
-  const isBlocked = selectedAsset.isAllocated && selectedAsset.holder;
+  const { data: assetsRes } = useGetAssetsQuery({ pageSize: 100 });
+  const { data: usersRes } = useGetUsersQuery();
+  const [createTransfer, { isLoading }] = useCreateTransferMutation();
 
-  const handleSubmit = (e) => {
+  const assets = assetsRes?.data || [];
+  const users = usersRes?.data || [];
+
+  const allocatedAssets = useMemo(() => {
+    return assets.filter(a => a.status === 'Allocated');
+  }, [assets]);
+
+  const selectedAsset = assets.find((a) => a.id === selectedAssetId) || allocatedAssets[0];
+  const isBlocked = selectedAsset?.status === 'Allocated';
+
+  // Fallback for current holder if populated in backend, else use a placeholder
+  const currentHolderName = selectedAsset?.holder?.name || 'Current Holder';
+  const currentHolderDept = selectedAsset?.holder?.department || 'Department';
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!transferTo || !reason.trim()) return;
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 3000);
+    if (!transferToId || !reason.trim() || !selectedAsset) return;
+    try {
+      await createTransfer({
+        assetId: selectedAsset.id,
+        toUserId: transferToId,
+        reason
+      }).unwrap();
+      
+      setSubmitted(true);
+      setTimeout(() => setSubmitted(false), 3000);
+      setTransferToId('');
+      setReason('');
+    } catch (err) {
+      console.error('Failed to submit transfer:', err);
+    }
   };
 
   return (
@@ -45,20 +61,21 @@ export default function AllocationTransfer() {
         <div>
           <label className="block text-sm font-medium text-slate-300 mb-2">Asset</label>
           <select
-            value={selectedTag}
+            value={selectedAssetId || (selectedAsset?.id || '')}
             onChange={(e) => {
-              setSelectedTag(e.target.value);
-              setTransferTo('');
+              setSelectedAssetId(e.target.value);
+              setTransferToId('');
               setReason('');
               setSubmitted(false);
             }}
             className="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
           >
-            {mockAssets.map((asset) => (
-              <option key={asset.tag} value={asset.tag}>
-                {asset.tag} - {asset.name}
+            {allocatedAssets.map((asset) => (
+              <option key={asset.id} value={asset.id}>
+                {asset.asset_tag || asset.tag} - {asset.name}
               </option>
             ))}
+            {allocatedAssets.length === 0 && <option value="">No allocated assets found</option>}
           </select>
         </div>
 
@@ -67,7 +84,7 @@ export default function AllocationTransfer() {
             <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
             <div>
               <p className="font-semibold">
-                Already Allocated to {selectedAsset.holder.name} ({selectedAsset.holder.department})
+                Already Allocated to {currentHolderName} ({currentHolderDept})
               </p>
               <p className="text-sm mt-1 text-red-400/80">
                 Direct re-allocation is blocked — submit a transfer request below
@@ -76,7 +93,7 @@ export default function AllocationTransfer() {
           </div>
         )}
 
-        {!isBlocked && (
+        {!isBlocked && selectedAsset && (
           <div className="bg-emerald-900/30 border border-emerald-500/40 rounded-xl p-4 text-emerald-400 text-sm">
             This asset is available for direct allocation.
           </div>
@@ -91,7 +108,7 @@ export default function AllocationTransfer() {
               <input
                 type="text"
                 readOnly
-                value={selectedAsset.holder.name}
+                value={currentHolderName}
                 className="w-full bg-slate-900/30 border border-slate-700/60 rounded-xl px-4 py-3 text-slate-400 cursor-not-allowed"
               />
             </div>
@@ -99,16 +116,15 @@ export default function AllocationTransfer() {
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-2">To</label>
               <select
-                value={transferTo}
-                onChange={(e) => setTransferTo(e.target.value)}
+                value={transferToId}
+                onChange={(e) => setTransferToId(e.target.value)}
                 className="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
               >
                 <option value="">Select Employee....</option>
-                {mockEmployees
-                  .filter((emp) => emp.name !== selectedAsset.holder.name)
+                {users
                   .map((emp) => (
-                    <option key={emp.id} value={emp.name}>
-                      {emp.name} — {emp.department}
+                    <option key={emp.id} value={emp.id}>
+                      {emp.name} — {emp.role || 'Employee'}
                     </option>
                   ))}
               </select>
@@ -127,10 +143,10 @@ export default function AllocationTransfer() {
 
             <button
               onClick={handleSubmit}
-              disabled={!transferTo || !reason.trim()}
+              disabled={!transferToId || !reason.trim() || isLoading}
               className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 disabled:from-slate-700 disabled:to-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed text-white px-8 py-3 rounded-xl text-sm font-semibold transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] flex items-center justify-center gap-2"
             >
-              <Send className="w-4 h-4" /> Submit Request
+              <Send className="w-4 h-4" /> {isLoading ? 'Submitting...' : 'Submit Request'}
             </button>
 
             {submitted && (
