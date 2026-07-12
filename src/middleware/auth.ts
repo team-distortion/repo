@@ -46,17 +46,16 @@ export function authMiddleware(
     } catch (error) {
       if (error instanceof jwt.TokenExpiredError) {
         throw ErrorResponses.InvalidOrExpiredToken();
+      } else if (error instanceof jwt.JsonWebTokenError) {
+        throw ErrorResponses.InvalidOrExpiredToken();
       }
-      throw ErrorResponses.InvalidOrExpiredToken();
+      throw error;
     }
   } catch (error) {
-    if (error instanceof jwt.JsonWebTokenError) {
-      res
-        .status(401)
-        .json({ error: { code: 'INVALID_TOKEN', message: 'Invalid token' } });
+    if ((error as any)?.errorCode) {
+      res.status((error as any).statusCode || 401).json({ error });
       return;
     }
-
     logger.error('Auth middleware error:', error);
     res
       .status(401)
