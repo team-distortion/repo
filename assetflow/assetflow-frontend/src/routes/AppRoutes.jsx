@@ -7,6 +7,11 @@ import Dashboard from '../pages/Dashboard';
 import OrganizationSetup from '../pages/admin/OrganizationSetup';
 import AssetsDirectory from '../pages/assets/AssetsDirectory';
 import AllocationTransfer from '../pages/allocations/AllocationTransfer';
+import ResourceBooking from '../pages/bookings/ResourceBooking';
+import MaintenanceManagement from '../pages/maintenance/MaintenanceManagement';
+import AssetAudit from '../pages/audit/AssetAudit';
+import ReportsAnalytics from '../pages/reports/ReportsAnalytics';
+import NotificationsCenter from '../pages/notifications/NotificationsCenter';
 
 export default function AppRoutes() {
   return (
@@ -23,6 +28,17 @@ export default function AppRoutes() {
 
         <Route path="assets" element={<AssetsDirectory />} />
         <Route path="allocations" element={<AllocationTransfer />} />
+        <Route path="bookings" element={<ResourceBooking />} />
+        <Route path="maintenance" element={<MaintenanceManagement />} />
+        <Route path="notifications" element={<NotificationsCenter />} />
+
+        <Route element={<RoleProtectedRoute allowedRoles={['Admin', 'Asset Manager']} />}>
+          <Route path="audit" element={<AssetAudit />} />
+        </Route>
+
+        <Route element={<RoleProtectedRoute allowedRoles={['Admin', 'Asset Manager', 'Department Head']} />}>
+          <Route path="reports" element={<ReportsAnalytics />} />
+        </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
