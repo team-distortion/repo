@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { loginSuccess } from '../../store/authSlice';
+import { useLoginMutation } from '../../store/apiSlice';
 import { Package } from 'lucide-react';
 
 export default function Login() {
@@ -10,19 +11,20 @@ export default function Login() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
-    e.preventDefault();
-    // Mock login logic mapping emails to roles for demonstration
-    let assignedRole = 'Employee';
-    if (email.includes('admin')) assignedRole = 'Admin';
-    else if (email.includes('manager')) assignedRole = 'Asset Manager';
-    else if (email.includes('head')) assignedRole = 'Department Head';
+  const [login, { isLoading, error }] = useLoginMutation();
 
-    dispatch(loginSuccess({
-      user: { email, name: email.split('@')[0] },
-      role: assignedRole
-    }));
-    navigate('/');
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await login({ email, password }).unwrap();
+      dispatch(loginSuccess({
+        user: response.data.user,
+        token: response.data.token
+      }));
+      navigate('/');
+    } catch (err) {
+      console.error('Login failed', err);
+    }
   };
 
   return (
@@ -68,11 +70,13 @@ export default function Login() {
             />
           </div>
 
+          {error && <p className="text-red-500 text-sm">{error.data?.message || 'Login failed'}</p>}
           <button 
             type="submit" 
-            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(37,99,235,0.3)] hover:shadow-[0_0_25px_rgba(37,99,235,0.5)]"
+            disabled={isLoading}
+            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(37,99,235,0.3)] hover:shadow-[0_0_25px_rgba(37,99,235,0.5)] disabled:opacity-50"
           >
-            Sign In
+            {isLoading ? 'Signing In...' : 'Sign In'}
           </button>
         </form>
 

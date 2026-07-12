@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import MainLayout from '../components/layout/MainLayout';
 import RoleProtectedRoute from './RoleProtectedRoute';
 import Login from '../pages/auth/Login';
@@ -14,12 +15,14 @@ import ReportsAnalytics from '../pages/reports/ReportsAnalytics';
 import NotificationsCenter from '../pages/notifications/NotificationsCenter';
 
 export default function AppRoutes() {
+  const { isAuthenticated } = useSelector((state) => state.auth);
+
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<Signup />} />
+      <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/" replace />} />
+      <Route path="/signup" element={!isAuthenticated ? <Signup /> : <Navigate to="/" replace />} />
       
-      <Route path="/" element={<MainLayout />}>
+      <Route path="/" element={isAuthenticated ? <MainLayout /> : <Navigate to="/login" replace />}>
         <Route index element={<Dashboard />} />
         
         <Route element={<RoleProtectedRoute allowedRoles={['Admin']} />}>

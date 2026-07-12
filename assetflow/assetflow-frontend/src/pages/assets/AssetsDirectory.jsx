@@ -1,14 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, X } from 'lucide-react';
 
-const mockAssets = [
-  { id: 1, tag: 'AF-0012', name: 'Dell Laptop', serial: 'SN-DL-0012', category: 'Electronics', status: 'Allocated', location: 'bengaluru', department: 'Engineering' },
-  { id: 2, tag: 'AF-0062', name: 'Projector', serial: 'SN-PJ-0062', category: 'Electronics', status: 'Maintenance', location: 'HQ floor 2', department: 'Facilities' },
-  { id: 3, tag: 'AF-0201', name: 'Office chair', serial: 'SN-OC-0201', category: 'Furniture', status: 'Available', location: 'Warehouse', department: 'Facilities' },
-  { id: 4, tag: 'AF-0114', name: 'Dell laptop', serial: 'SN-DL-0114', category: 'Electronics', status: 'Allocated', location: 'Engineering floor', department: 'Engineering' },
-  { id: 5, tag: 'AF-0305', name: 'Conference Room B2', serial: 'RM-B2', category: 'Spaces', status: 'Reserved', location: 'HQ floor 2', department: 'Facilities' },
-];
+import { useGetAssetsQuery, useCreateAssetMutation } from '../../store/apiSlice';
 
 const categories = ['All', 'Electronics', 'Furniture', 'Spaces'];
 const statuses = ['All', 'Available', 'Allocated', 'Maintenance', 'Reserved'];
@@ -30,10 +24,31 @@ export default function AssetsDirectory() {
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
   const [departmentFilter, setDepartmentFilter] = useState('All');
+  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newAsset, setNewAsset] = useState({ name: '', asset_tag: '', serial_number: '', category_id: '' });
+
+  const { data: assetsResponse, isLoading, error } = useGetAssetsQuery({ pageSize: 100 });
+  const [createAsset, { isLoading: isCreating }] = useCreateAssetMutation();
+  
+  const rawAssets = assetsResponse?.data || [];
+  
+  const mappedAssets = useMemo(() => {
+    return rawAssets.map(a => ({
+      id: a.id,
+      tag: a.asset_tag || a.tag || '',
+      name: a.name || '',
+      serial: a.serial_number || '',
+      category: a.category || 'Unknown',
+      status: a.status || 'Available',
+      location: a.location || 'Unknown',
+      department: a.department || 'Unknown'
+    }));
+  }, [rawAssets]);
 
   const filteredAssets = useMemo(() => {
     const query = search.trim().toLowerCase();
-    return mockAssets.filter((asset) => {
+    return mappedAssets.filter((asset) => {
       const matchesSearch =
         !query ||
         asset.tag.toLowerCase().includes(query) ||
@@ -44,10 +59,24 @@ export default function AssetsDirectory() {
       const matchesDepartment = departmentFilter === 'All' || asset.department === departmentFilter;
       return matchesSearch && matchesCategory && matchesStatus && matchesDepartment;
     });
-  }, [search, categoryFilter, statusFilter, departmentFilter]);
+  }, [search, categoryFilter, statusFilter, departmentFilter, mappedAssets]);
+
+  const handleCreateAsset = async (e) => {
+    e.preventDefault();
+    try {
+      await createAsset(newAsset).unwrap();
+      setIsModalOpen(false);
+      setNewAsset({ name: '', asset_tag: '', serial_number: '', category_id: '' });
+    } catch (err) {
+      console.error('Failed to create asset', err);
+    }
+  };
+
+  if (isLoading) return <div className="text-white p-4">Loading assets...</div>;
+  if (error) return <div className="text-red-500 p-4">Error loading assets.</div>;
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 animate-in fade-in duration-500">
+    <div className="max-w-6xl mx-auto space-y-6 animate-in fade-in duration-500 relative">
       <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
@@ -61,7 +90,10 @@ export default function AssetsDirectory() {
         </div>
 
         {['Admin', 'Asset Manager'].includes(role) && (
-          <button className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white px-6 py-3.5 rounded-xl text-sm font-semibold transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] flex items-center justify-center gap-2 whitespace-nowrap">
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white px-6 py-3.5 rounded-xl text-sm font-semibold transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] flex items-center justify-center gap-2 whitespace-nowrap"
+          >
             <Plus className="w-5 h-5" /> Register Asset
           </button>
         )}
@@ -114,6 +146,36 @@ export default function AssetsDirectory() {
           </table>
         </div>
       </div>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-white">Register Asset</h3>
+              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleCreateAsset} className="space-y-4">
+              <div>
+                <label className="block text-sm text-slate-300 mb-1">Asset Tag</label>
+                <input required type="text" value={newAsset.asset_tag} onChange={e => setNewAsset({...newAsset, asset_tag: e.target.value})} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+              </div>
+              <div>
+                <label className="block text-sm text-slate-300 mb-1">Name</label>
+                <input required type="text" value={newAsset.name} onChange={e => setNewAsset({...newAsset, name: e.target.value})} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+              </div>
+              <div>
+                <label className="block text-sm text-slate-300 mb-1">Serial Number</label>
+                <input type="text" value={newAsset.serial_number} onChange={e => setNewAsset({...newAsset, serial_number: e.target.value})} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+              </div>
+              <button type="submit" disabled={isCreating} className="w-full bg-emerald-500 hover:bg-emerald-400 text-white rounded-lg py-2.5 font-semibold transition-colors mt-4">
+                {isCreating ? 'Saving...' : 'Save Asset'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,8 +1,15 @@
 import { useSelector } from 'react-redux';
 import { Package, Calendar, AlertCircle, Wrench, ArrowRightLeft, Clock, Activity, Plus } from 'lucide-react';
+import { useGetDashboardStatsQuery } from '../store/apiSlice';
 
 export default function Dashboard() {
   const { role } = useSelector(state => state.auth);
+  const { data: statsResponse, isLoading, error } = useGetDashboardStatsQuery();
+
+  if (isLoading) return <div className="text-white p-4">Loading dashboard...</div>;
+  if (error) return <div className="text-red-500 p-4">Failed to load dashboard stats.</div>;
+
+  const stats = statsResponse?.data || {};
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 max-w-5xl">
@@ -17,9 +24,9 @@ export default function Dashboard() {
         
         {/* Top Row KPIs */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <KpiCard title="Available" value="128" icon={Package} color="text-emerald-400" bg="bg-emerald-400/10" />
-          <KpiCard title="Allocated" value="76" icon={Package} color="text-blue-400" bg="bg-blue-400/10" />
-          <KpiCard title="Maintenance" value="4" icon={Wrench} color="text-amber-400" bg="bg-amber-400/10" />
+          <KpiCard title="Total Assets" value={stats.totalAssets || 0} icon={Package} color="text-emerald-400" bg="bg-emerald-400/10" />
+          <KpiCard title="Active Allocations" value={stats.activeAllocations || 0} icon={Package} color="text-blue-400" bg="bg-blue-400/10" />
+          <KpiCard title="Open Maintenance" value={stats.openMaintenanceRequests || 0} icon={Wrench} color="text-amber-400" bg="bg-amber-400/10" />
         </div>
 
         {/* Middle Row KPIs */}
