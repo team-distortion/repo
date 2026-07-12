@@ -35,7 +35,7 @@ router.get('/', requireRole('Admin', 'AssetManager', 'DepartmentHead'), async (r
 router.get('/:id', requireRole('Admin', 'AssetManager', 'DepartmentHead'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    if (!isValidUUID(id)) throw ErrorResponses.BadRequest('Invalid user ID');
+    if (!isValidUUID(id)) throw ErrorResponses.ValidationError('Invalid user ID');
 
     const result = await query('SELECT id, name, email, department_id, role, status, created_at, updated_at FROM users WHERE id = $1', [id]);
     if (result.rows.length === 0) {
@@ -53,15 +53,15 @@ router.post('/', requireRole('Admin'), async (req: Request, res: Response, next:
   try {
     const { name, email, password, departmentId, role, status } = req.body;
     
-    if (!name) throw ErrorResponses.BadRequest('Name is required');
-    if (!email || !isValidEmail(email)) throw ErrorResponses.BadRequest('Valid email is required');
-    if (!password || !isStrongPassword(password)) throw ErrorResponses.BadRequest('Strong password is required');
-    if (departmentId && !isValidUUID(departmentId)) throw ErrorResponses.BadRequest('Invalid departmentId');
-    if (role && !['Employee', 'DepartmentHead', 'AssetManager', 'Admin'].includes(role)) throw ErrorResponses.BadRequest('Invalid role');
-    if (status && !['Active', 'Inactive'].includes(status)) throw ErrorResponses.BadRequest('Invalid status');
+    if (!name) throw ErrorResponses.ValidationError('Name is required');
+    if (!email || !isValidEmail(email)) throw ErrorResponses.ValidationError('Valid email is required');
+    if (!password || !isStrongPassword(password)) throw ErrorResponses.ValidationError('Strong password is required');
+    if (departmentId && !isValidUUID(departmentId)) throw ErrorResponses.ValidationError('Invalid departmentId');
+    if (role && !['Employee', 'DepartmentHead', 'AssetManager', 'Admin'].includes(role)) throw ErrorResponses.ValidationError('Invalid role');
+    if (status && !['Active', 'Inactive'].includes(status)) throw ErrorResponses.ValidationError('Invalid status');
 
     const existing = await query('SELECT id FROM users WHERE email = $1', [email]);
-    if (existing.rows.length > 0) throw ErrorResponses.BadRequest('Email already registered');
+    if (existing.rows.length > 0) throw ErrorResponses.ValidationError('Email already registered');
 
     const saltRounds = 10;
     const passwordHash = await bcrypt.hash(password, saltRounds);
@@ -76,7 +76,7 @@ router.post('/', requireRole('Admin'), async (req: Request, res: Response, next:
 
     const entity = mapRowToEntity(result.rows[0]);
     if (req.user) {
-      logActivity(req, 'UserCreated', 'User', entity.id, { email });
+      logActivity(require('@utils/database').getPool(), 'UserCreated', 'User', (entity as any).id, req.user.userId, { email });
     }
     sendSuccess(res, entity, 201);
   } catch (error) {
@@ -90,19 +90,19 @@ router.put('/:id', requireRole('Admin'), async (req: Request, res: Response, nex
     const { id } = req.params;
     const { name, email, password, departmentId, role, status } = req.body;
     
-    if (!isValidUUID(id)) throw ErrorResponses.BadRequest('Invalid user ID');
-    if (email && !isValidEmail(email)) throw ErrorResponses.BadRequest('Valid email is required');
-    if (password && !isStrongPassword(password)) throw ErrorResponses.BadRequest('Strong password is required');
-    if (departmentId && !isValidUUID(departmentId)) throw ErrorResponses.BadRequest('Invalid departmentId');
-    if (role && !['Employee', 'DepartmentHead', 'AssetManager', 'Admin'].includes(role)) throw ErrorResponses.BadRequest('Invalid role');
-    if (status && !['Active', 'Inactive'].includes(status)) throw ErrorResponses.BadRequest('Invalid status');
+    if (!isValidUUID(id)) throw ErrorResponses.ValidationError('Invalid user ID');
+    if (email && !isValidEmail(email)) throw ErrorResponses.ValidationError('Valid email is required');
+    if (password && !isStrongPassword(password)) throw ErrorResponses.ValidationError('Strong password is required');
+    if (departmentId && !isValidUUID(departmentId)) throw ErrorResponses.ValidationError('Invalid departmentId');
+    if (role && !['Employee', 'DepartmentHead', 'AssetManager', 'Admin'].includes(role)) throw ErrorResponses.ValidationError('Invalid role');
+    if (status && !['Active', 'Inactive'].includes(status)) throw ErrorResponses.ValidationError('Invalid status');
 
     const current = await query('SELECT * FROM users WHERE id = $1', [id]);
     if (current.rows.length === 0) throw ErrorResponses.NotFound('User not found');
 
     if (email && email !== current.rows[0].email) {
       const existing = await query('SELECT id FROM users WHERE email = $1 AND id != $2', [email, id]);
-      if (existing.rows.length > 0) throw ErrorResponses.BadRequest('Email already registered');
+      if (existing.rows.length > 0) throw ErrorResponses.ValidationError('Email already registered');
     }
 
     const updatedName = name || current.rows[0].name;
@@ -123,7 +123,7 @@ router.put('/:id', requireRole('Admin'), async (req: Request, res: Response, nex
 
     const entity = mapRowToEntity(result.rows[0]);
     if (req.user) {
-      logActivity(req, 'UserUpdated', 'User', entity.id, { email: updatedEmail });
+      logActivity(require('@utils/database').getPool(), 'UserUpdated', 'User', (entity as any).id, req.user.userId, { email: updatedEmail });
     }
     sendSuccess(res, entity, 200);
   } catch (error) {
@@ -135,11 +135,11 @@ router.put('/:id', requireRole('Admin'), async (req: Request, res: Response, nex
 router.delete('/:id', requireRole('Admin'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    if (!isValidUUID(id)) throw ErrorResponses.BadRequest('Invalid user ID');
+    if (!isValidUUID(id)) throw ErrorResponses.ValidationError('Invalid user ID');
 
     // Make sure we're not deleting ourselves
-    if (req.user && req.user.id === id) {
-      throw ErrorResponses.BadRequest('Cannot delete your own account');
+    if (req.user && req.user.userId === id) {
+      throw ErrorResponses.ValidationError('Cannot delete your own account');
     }
 
     const current = await query('SELECT id FROM users WHERE id = $1', [id]);
@@ -148,13 +148,13 @@ router.delete('/:id', requireRole('Admin'), async (req: Request, res: Response, 
     try {
       await query('DELETE FROM users WHERE id = $1', [id]);
       if (req.user) {
-        logActivity(req, 'UserDeleted', 'User', id, {});
+        logActivity(require('@utils/database').getPool(), 'UserDeleted', 'User', id, req.user.userId, {});
       }
       sendSuccess(res, { message: 'User deleted successfully' }, 200);
     } catch (dbError: any) {
       // If restricted by FK
       if (dbError.code === '23503') { // foreign_key_violation
-        throw ErrorResponses.BadRequest('Cannot delete user because they are referenced by other records (e.g., allocations). Consider setting their status to Inactive instead.');
+        throw ErrorResponses.ValidationError('Cannot delete user because they are referenced by other records (e.g., allocations). Consider setting their status to Inactive instead.');
       }
       throw dbError;
     }

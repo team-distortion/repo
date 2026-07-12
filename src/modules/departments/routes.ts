@@ -34,7 +34,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    if (!isValidUUID(id)) throw ErrorResponses.BadRequest('Invalid department ID');
+    if (!isValidUUID(id)) throw ErrorResponses.ValidationError('Invalid department ID');
 
     const result = await query('SELECT * FROM departments WHERE id = $1', [id]);
     if (result.rows.length === 0) {
@@ -51,13 +51,13 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
 router.post('/', requireRole('Admin'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { name, parentId, headUserId, status } = req.body;
-    if (!name) throw ErrorResponses.BadRequest('Name is required');
-    if (parentId && !isValidUUID(parentId)) throw ErrorResponses.BadRequest('Invalid parentId');
-    if (headUserId && !isValidUUID(headUserId)) throw ErrorResponses.BadRequest('Invalid headUserId');
-    if (status && !['Active', 'Inactive'].includes(status)) throw ErrorResponses.BadRequest('Invalid status');
+    if (!name) throw ErrorResponses.ValidationError('Name is required');
+    if (parentId && !isValidUUID(parentId)) throw ErrorResponses.ValidationError('Invalid parentId');
+    if (headUserId && !isValidUUID(headUserId)) throw ErrorResponses.ValidationError('Invalid headUserId');
+    if (status && !['Active', 'Inactive'].includes(status)) throw ErrorResponses.ValidationError('Invalid status');
 
     const existing = await query('SELECT id FROM departments WHERE name = $1', [name]);
-    if (existing.rows.length > 0) throw ErrorResponses.BadRequest('Department name already exists');
+    if (existing.rows.length > 0) throw ErrorResponses.ValidationError('Department name already exists');
 
     const statusValue = status || 'Active';
     const result = await query(
@@ -67,7 +67,7 @@ router.post('/', requireRole('Admin'), async (req: Request, res: Response, next:
 
     const entity = mapRowToEntity(result.rows[0]);
     if (req.user) {
-      logActivity(req, 'DepartmentCreated', 'Department', entity.id, { name });
+      logActivity(require('@utils/database').getPool(), 'DepartmentCreated', 'Department', (entity as any).id, req.user.userId, { name });
     }
     sendSuccess(res, entity, 201);
   } catch (error) {
@@ -81,19 +81,19 @@ router.put('/:id', requireRole('Admin'), async (req: Request, res: Response, nex
     const { id } = req.params;
     const { name, parentId, headUserId, status } = req.body;
     
-    if (!isValidUUID(id)) throw ErrorResponses.BadRequest('Invalid department ID');
-    if (parentId && !isValidUUID(parentId)) throw ErrorResponses.BadRequest('Invalid parentId');
-    if (headUserId && !isValidUUID(headUserId)) throw ErrorResponses.BadRequest('Invalid headUserId');
-    if (status && !['Active', 'Inactive'].includes(status)) throw ErrorResponses.BadRequest('Invalid status');
+    if (!isValidUUID(id)) throw ErrorResponses.ValidationError('Invalid department ID');
+    if (parentId && !isValidUUID(parentId)) throw ErrorResponses.ValidationError('Invalid parentId');
+    if (headUserId && !isValidUUID(headUserId)) throw ErrorResponses.ValidationError('Invalid headUserId');
+    if (status && !['Active', 'Inactive'].includes(status)) throw ErrorResponses.ValidationError('Invalid status');
 
-    if (id === parentId) throw ErrorResponses.BadRequest('Department cannot be its own parent');
+    if (id === parentId) throw ErrorResponses.ValidationError('Department cannot be its own parent');
 
     const current = await query('SELECT * FROM departments WHERE id = $1', [id]);
     if (current.rows.length === 0) throw ErrorResponses.NotFound('Department not found');
 
     if (name && name !== current.rows[0].name) {
       const existing = await query('SELECT id FROM departments WHERE name = $1 AND id != $2', [name, id]);
-      if (existing.rows.length > 0) throw ErrorResponses.BadRequest('Department name already exists');
+      if (existing.rows.length > 0) throw ErrorResponses.ValidationError('Department name already exists');
     }
 
     const updatedName = name || current.rows[0].name;
@@ -108,7 +108,7 @@ router.put('/:id', requireRole('Admin'), async (req: Request, res: Response, nex
 
     const entity = mapRowToEntity(result.rows[0]);
     if (req.user) {
-      logActivity(req, 'DepartmentUpdated', 'Department', entity.id, { name: updatedName });
+      logActivity(require('@utils/database').getPool(), 'DepartmentUpdated', 'Department', (entity as any).id, req.user.userId, { name: updatedName });
     }
     sendSuccess(res, entity, 200);
   } catch (error) {

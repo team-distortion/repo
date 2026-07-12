@@ -70,7 +70,7 @@ export function requestLogger(
  * Called after successful state-changing operations
  */
 export async function logActivity(
-  client: PoolClient,
+  client: PoolClient | import('pg').Pool,
   action: string,
   targetEntity: string,
   targetId: string,

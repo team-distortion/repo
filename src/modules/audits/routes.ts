@@ -10,7 +10,9 @@ const router = Router();
 // List audit cycles
 router.get('/', requireRole('Admin', 'AssetManager', 'DepartmentHead'), async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { limit, offset, page } = buildLimitOffset(req);
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.pageSize) || 10;
+    const offset = (page - 1) * limit;
     const result = await query(`
       SELECT * FROM audit_cycles
       ORDER BY created_at DESC
@@ -19,7 +21,7 @@ router.get('/', requireRole('Admin', 'AssetManager', 'DepartmentHead'), async (r
     
     const countResult = await query(`SELECT COUNT(*) FROM audit_cycles`);
     const total = parseInt(countResult.rows[0].count, 10);
-    const pagination = buildPaginationMeta(total, limit, page);
+    const pagination = buildPaginationMeta(page, limit, total);
     
     sendSuccess(res, result.rows.map(r => ({
       id: r.id,
@@ -41,7 +43,7 @@ router.get('/', requireRole('Admin', 'AssetManager', 'DepartmentHead'), async (r
 router.post('/', requireRole('Admin', 'AssetManager'), async (req: Request, res: Response, next: NextFunction) => {
   const { scopeType, scopeValue, startDate, endDate, auditorIds } = req.body;
   if (!scopeType || !scopeValue || !startDate || !endDate || !Array.isArray(auditorIds)) {
-    return next(ErrorResponses.badRequest('Missing required fields'));
+    return next(ErrorResponses.ValidationError('Missing required fields'));
   }
   
   try {
@@ -87,7 +89,7 @@ router.post('/', requireRole('Admin', 'AssetManager'), async (req: Request, res:
       return cycle;
     });
     
-    logActivity(req.user!.id, 'AuditCycleCreated', 'AuditCycle', result.id, { scopeType, scopeValue });
+    logActivity(require('../../utils/database').getPool(), 'AuditCycleCreated', 'AuditCycle', result.id, req.user!.userId, { scopeType, scopeValue });
     sendSuccess(res, { id: result.id, status: result.status }, 201);
   } catch (err) {
     next(err);
@@ -98,7 +100,7 @@ router.post('/', requireRole('Admin', 'AssetManager'), async (req: Request, res:
 router.get('/:id', requireRole('Admin', 'AssetManager', 'DepartmentHead'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const cycle = await query(`SELECT * FROM audit_cycles WHERE id = $1`, [req.params.id]);
-    if (cycle.rowCount === 0) return next(ErrorResponses.notFound('Audit cycle not found'));
+    if (cycle.rowCount === 0) return next(ErrorResponses.NotFound('Audit cycle not found'));
     
     const auditors = await query(`
       SELECT u.id, u.name FROM audit_cycle_auditors aca
@@ -144,7 +146,7 @@ router.get('/:id', requireRole('Admin', 'AssetManager', 'DepartmentHead'), async
 // Update audit item
 router.put('/:id/items/:itemId', requireRole('Admin', 'AssetManager', 'DepartmentHead', 'Employee'), async (req: Request, res: Response, next: NextFunction) => {
   const { verification, discrepancyNote } = req.body;
-  if (!verification) return next(ErrorResponses.badRequest('Verification status required'));
+  if (!verification) return next(ErrorResponses.ValidationError('Verification status required'));
   
   try {
     // Basic check: is user an auditor? (Skipping for brevity, but could check audit_cycle_auditors)
@@ -153,11 +155,11 @@ router.put('/:id/items/:itemId', requireRole('Admin', 'AssetManager', 'Departmen
       SET verification = $1, discrepancy_note = $2, verified_by = $3, verified_at = NOW()
       WHERE id = $4 AND audit_cycle_id = $5
       RETURNING *
-    `, [verification, discrepancyNote || null, req.user!.id, req.params.itemId, req.params.id]);
+    `, [verification, discrepancyNote || null, req.user!.userId, req.params.itemId, req.params.id]);
     
-    if (result.rowCount === 0) return next(ErrorResponses.notFound('Audit item not found'));
+    if (result.rowCount === 0) return next(ErrorResponses.NotFound('Audit item not found'));
     
-    logActivity(req.user!.id, 'AuditItemUpdated', 'AuditItem', req.params.itemId, { verification });
+    logActivity(require('../../utils/database').getPool(), 'AuditItemUpdated', 'AuditItem', req.params.itemId, req.user!.userId, { verification });
     sendSuccess(res, { message: 'Updated successfully' }, 200);
   } catch (err) {
     next(err);

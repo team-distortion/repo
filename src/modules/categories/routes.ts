@@ -34,7 +34,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    if (!isValidUUID(id)) throw ErrorResponses.BadRequest('Invalid category ID');
+    if (!isValidUUID(id)) throw ErrorResponses.ValidationError('Invalid category ID');
 
     const result = await query('SELECT * FROM categories WHERE id = $1', [id]);
     if (result.rows.length === 0) {
@@ -51,10 +51,10 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
 router.post('/', requireRole('Admin', 'AssetManager'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { name, customFields } = req.body;
-    if (!name) throw ErrorResponses.BadRequest('Name is required');
+    if (!name) throw ErrorResponses.ValidationError('Name is required');
 
     const existing = await query('SELECT id FROM categories WHERE name = $1', [name]);
-    if (existing.rows.length > 0) throw ErrorResponses.BadRequest('Category name already exists');
+    if (existing.rows.length > 0) throw ErrorResponses.ValidationError('Category name already exists');
 
     const customFieldsJson = customFields ? JSON.stringify(customFields) : null;
     const result = await query(
@@ -64,7 +64,7 @@ router.post('/', requireRole('Admin', 'AssetManager'), async (req: Request, res:
 
     const entity = mapRowToEntity(result.rows[0]);
     if (req.user) {
-      logActivity(req, 'CategoryCreated', 'Category', entity.id, { name });
+      logActivity(require('@utils/database').getPool(), 'CategoryCreated', 'Category', (entity as any).id, req.user.userId, { name });
     }
     sendSuccess(res, entity, 201);
   } catch (error) {
@@ -77,14 +77,14 @@ router.put('/:id', requireRole('Admin', 'AssetManager'), async (req: Request, re
   try {
     const { id } = req.params;
     const { name, customFields } = req.body;
-    if (!isValidUUID(id)) throw ErrorResponses.BadRequest('Invalid category ID');
+    if (!isValidUUID(id)) throw ErrorResponses.ValidationError('Invalid category ID');
 
     const current = await query('SELECT * FROM categories WHERE id = $1', [id]);
     if (current.rows.length === 0) throw ErrorResponses.NotFound('Category not found');
 
     if (name && name !== current.rows[0].name) {
       const existing = await query('SELECT id FROM categories WHERE name = $1 AND id != $2', [name, id]);
-      if (existing.rows.length > 0) throw ErrorResponses.BadRequest('Category name already exists');
+      if (existing.rows.length > 0) throw ErrorResponses.ValidationError('Category name already exists');
     }
 
     const updatedName = name || current.rows[0].name;
@@ -97,7 +97,7 @@ router.put('/:id', requireRole('Admin', 'AssetManager'), async (req: Request, re
 
     const entity = mapRowToEntity(result.rows[0]);
     if (req.user) {
-      logActivity(req, 'CategoryUpdated', 'Category', entity.id, { name: updatedName });
+      logActivity(require('@utils/database').getPool(), 'CategoryUpdated', 'Category', (entity as any).id, req.user.userId, { name: updatedName });
     }
     sendSuccess(res, entity, 200);
   } catch (error) {

@@ -9,17 +9,19 @@ const router = Router();
 // Get current user's notifications
 router.get('/', requireRole('Admin', 'AssetManager', 'DepartmentHead', 'Employee'), async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { limit, offset, page } = buildLimitOffset(req);
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.pageSize) || 10;
+    const offset = (page - 1) * limit;
     const result = await query(`
       SELECT * FROM notifications 
       WHERE user_id = $1 
       ORDER BY created_at DESC
       LIMIT $2 OFFSET $3
-    `, [req.user!.id, limit, offset]);
+    `, [req.user!.userId, limit, offset]);
     
-    const countResult = await query(`SELECT COUNT(*) FROM notifications WHERE user_id = $1`, [req.user!.id]);
+    const countResult = await query(`SELECT COUNT(*) FROM notifications WHERE user_id = $1`, [req.user!.userId]);
     const total = parseInt(countResult.rows[0].count, 10);
-    const pagination = buildPaginationMeta(total, limit, page);
+    const pagination = buildPaginationMeta(page, limit, total);
     
     sendSuccess(res, result.rows.map(r => ({
       id: r.id,
@@ -43,10 +45,11 @@ router.put('/:id/read', requireRole('Admin', 'AssetManager', 'DepartmentHead', '
       UPDATE notifications SET is_read = TRUE 
       WHERE id = $1 AND user_id = $2
       RETURNING *
-    `, [req.params.id, req.user!.id]);
+    `, [req.params.id, req.user!.userId]);
     
     if (result.rowCount === 0) {
-      return sendSuccess(res, { message: 'Not found or already read' }, 404);
+      sendSuccess(res, { message: 'Not found or already read' }, 404);
+      return;
     }
     
     sendSuccess(res, { message: 'Marked as read' }, 200);
@@ -61,7 +64,7 @@ router.put('/read-all', requireRole('Admin', 'AssetManager', 'DepartmentHead', '
     await query(`
       UPDATE notifications SET is_read = TRUE 
       WHERE user_id = $1 AND is_read = FALSE
-    `, [req.user!.id]);
+    `, [req.user!.userId]);
     
     sendSuccess(res, { message: 'All marked as read' }, 200);
   } catch (err) {

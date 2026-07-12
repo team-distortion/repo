@@ -147,13 +147,15 @@ router.post('/forgot-password', async (req: Request, res: Response, next: NextFu
     const { rows } = await query('SELECT id, status FROM users WHERE email = $1', [email]);
     
     if (rows.length === 0) {
-      return sendSuccess(res, { message: 'If an account with that email exists, a reset link has been sent' }, 200);
+      sendSuccess(res, { message: 'If an account with that email exists, a reset link has been sent' }, 200);
+      return;
     }
     
     const user = rows[0];
     
     if (user.status !== 'Active') {
-      return sendSuccess(res, { message: 'If an account with that email exists, a reset link has been sent' }, 200);
+      sendSuccess(res, { message: 'If an account with that email exists, a reset link has been sent' }, 200);
+      return;
     }
     
     const resetToken = crypto.randomUUID();
