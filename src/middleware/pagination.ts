@@ -91,7 +91,7 @@ export function buildLimitOffset(pageSize: number, offset: number): string {
 export function buildOrderByClause(
   sortBy?: string,
   sortOrder: 'asc' | 'desc' = 'desc',
-  defaultField: string = 'createdAt'
+  defaultField: string = 'created_at'
 ): string {
   // Sanitize sortBy to prevent SQL injection (whitelist validation)
   const allowedFields = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
