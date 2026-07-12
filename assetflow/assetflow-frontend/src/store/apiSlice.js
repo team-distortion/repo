@@ -13,7 +13,7 @@ export const apiSlice = createApi({
       return headers;
     },
   }),
-  tagTypes: ['User', 'Asset', 'Department', 'Category', 'Allocation', 'Booking', 'Maintenance', 'Transfer', 'Notification'],
+  tagTypes: ['User', 'Asset', 'Department', 'Category', 'Allocation', 'Booking', 'Maintenance', 'Transfer', 'Notification', 'Audit'],
   endpoints: (builder) => ({
     // Auth
     login: builder.mutation({
@@ -214,6 +214,43 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ['Category'],
     }),
+
+    // Reports
+    getReports: builder.query({
+      query: (params) => ({
+        url: '/reports',
+        params,
+      }),
+    }),
+
+    // Notifications
+    getNotifications: builder.query({
+      query: (params) => ({
+        url: '/notifications',
+        params,
+      }),
+      providesTags: ['Notification'],
+    }),
+
+    // Audits
+    getAudits: builder.query({
+      query: (params) => ({
+        url: '/audits',
+        params,
+      }),
+      providesTags: ['Audit'],
+    }),
+    getAuditDetails: builder.query({
+      query: (id) => `/audits/${id}`,
+      providesTags: (result, error, id) => [{ type: 'Audit', id }],
+    }),
+    closeAudit: builder.mutation({
+      query: (id) => ({
+        url: `/audits/${id}/close`,
+        method: 'POST',
+      }),
+      invalidatesTags: ['Audit'],
+    }),
   }),
 });
 
@@ -244,4 +281,9 @@ export const {
   useCreateDepartmentMutation,
   useGetCategoriesQuery,
   useCreateCategoryMutation,
+  useGetReportsQuery,
+  useGetNotificationsQuery,
+  useGetAuditsQuery,
+  useGetAuditDetailsQuery,
+  useCloseAuditMutation,
 } = apiSlice;

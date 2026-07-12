@@ -1,9 +1,11 @@
 import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { Package, Calendar, AlertCircle, Wrench, ArrowRightLeft, Clock, Activity, Plus } from 'lucide-react';
 import { useGetDashboardStatsQuery } from '../store/apiSlice';
 
 export default function Dashboard() {
   const { role } = useSelector(state => state.auth);
+  const navigate = useNavigate();
   const { data: statsResponse, isLoading, error } = useGetDashboardStatsQuery();
 
   if (isLoading) return <div className="text-white p-4">Loading dashboard...</div>;
@@ -31,28 +33,30 @@ export default function Dashboard() {
 
         {/* Middle Row KPIs */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <KpiCard title="Active Bookings" value="4" icon={Calendar} color="text-indigo-400" bg="bg-indigo-400/10" />
-          <KpiCard title="Pending Transfers" value="8" icon={ArrowRightLeft} color="text-purple-400" bg="bg-purple-400/10" />
-          <KpiCard title="Upcoming returns" value="12" icon={Clock} color="text-teal-400" bg="bg-teal-400/10" />
+          <KpiCard title="Active Bookings" value={stats.activeBookings || 0} icon={Calendar} color="text-indigo-400" bg="bg-indigo-400/10" />
+          <KpiCard title="Pending Transfers" value={stats.pendingTransfers || 0} icon={ArrowRightLeft} color="text-purple-400" bg="bg-purple-400/10" />
+          <KpiCard title="Upcoming returns" value={stats.upcomingReturns || 0} icon={Clock} color="text-teal-400" bg="bg-teal-400/10" />
         </div>
 
         {/* Alert Banner */}
-        <div className="bg-red-900/40 border border-red-500/50 rounded-xl p-4 flex items-center gap-3 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.1)]">
-          <AlertCircle className="w-5 h-5 flex-shrink-0" />
-          <p className="font-medium">3 assets overdue for return - flagged for follow-up</p>
-        </div>
+        {stats.overdueReturns > 0 && (
+          <div className="bg-red-900/40 border border-red-500/50 rounded-xl p-4 flex items-center gap-3 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.1)]">
+            <AlertCircle className="w-5 h-5 flex-shrink-0" />
+            <p className="font-medium">{stats.overdueReturns} assets overdue for return - flagged for follow-up</p>
+          </div>
+        )}
 
         {/* Quick Actions */}
         <div className="flex flex-wrap gap-4 pt-2">
            {['Admin', 'Asset Manager'].includes(role) && (
-              <button className="bg-transparent border border-emerald-500 text-emerald-400 hover:bg-emerald-500/10 px-6 py-2.5 rounded-full font-medium transition-all flex items-center gap-2">
+              <button onClick={() => navigate('/assets')} className="bg-transparent border border-emerald-500 text-emerald-400 hover:bg-emerald-500/10 px-6 py-2.5 rounded-full font-medium transition-all flex items-center gap-2">
                 <Plus className="w-4 h-4" /> register asset
               </button>
            )}
-           <button className="bg-transparent border border-slate-500 text-slate-300 hover:bg-slate-800 px-6 py-2.5 rounded-full font-medium transition-all">
+           <button onClick={() => navigate('/bookings')} className="bg-transparent border border-slate-500 text-slate-300 hover:bg-slate-800 px-6 py-2.5 rounded-full font-medium transition-all">
              Book resource
            </button>
-           <button className="bg-transparent border border-slate-500 text-slate-300 hover:bg-slate-800 px-6 py-2.5 rounded-full font-medium transition-all">
+           <button onClick={() => navigate('/maintenance')} className="bg-transparent border border-slate-500 text-slate-300 hover:bg-slate-800 px-6 py-2.5 rounded-full font-medium transition-all">
              Raise requests
            </button>
         </div>
@@ -61,15 +65,13 @@ export default function Dashboard() {
       <div className="pt-6">
         <h3 className="text-xl font-semibold text-white mb-4">Recent Activity</h3>
         <div className="space-y-3">
-          <ActivityItem 
-            text="Laptop AF-0114 - allocated to Priya Shah - IT dept"
-          />
-          <ActivityItem 
-            text="Room B2 - booking confirmed - 2:00 to 3:00 PM"
-          />
-          <ActivityItem 
-            text="Projector AF-0062 - maintenance resolved"
-          />
+          {stats.recentActivity?.length > 0 ? (
+            stats.recentActivity.map((activity, index) => (
+              <ActivityItem key={index} text={activity} />
+            ))
+          ) : (
+            <p className="text-slate-500 text-sm">No recent activity.</p>
+          )}
         </div>
       </div>
     </div>

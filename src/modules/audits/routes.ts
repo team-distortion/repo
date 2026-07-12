@@ -166,4 +166,23 @@ router.put('/:id/items/:itemId', requireRole('Admin', 'AssetManager', 'Departmen
   }
 });
 
+// Close audit cycle
+router.post('/:id/close', requireRole('Admin', 'AssetManager', 'DepartmentHead'), async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const result = await query(`
+      UPDATE audit_cycles
+      SET status = 'Closed', closed_at = NOW(), updated_at = NOW()
+      WHERE id = $1 AND status != 'Closed'
+      RETURNING *
+    `, [req.params.id]);
+    
+    if (result.rowCount === 0) return next(ErrorResponses.NotFound('Audit cycle not found or already closed'));
+    
+    logActivity(require('../../utils/database').getPool(), 'AuditCycleClosed', 'AuditCycle', req.params.id, req.user!.userId, {});
+    sendSuccess(res, { message: 'Audit cycle closed successfully' }, 200);
+  } catch (err) {
+    next(err);
+  }
+});
+
 export default router;

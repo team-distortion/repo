@@ -1,6 +1,36 @@
+import React from 'react';
+import { useGetBookingsQuery, useCreateBookingMutation } from '../../store/apiSlice';
+
 const timeline = ['9:00', '10:00', '11:00', '12:00', '1:00'];
 
 export default function ResourceBooking() {
+  const { data, isLoading, error } = useGetBookingsQuery();
+  const [createBooking, { isLoading: isBooking }] = useCreateBookingMutation();
+
+  const bookings = data?.data || [];
+
+  const handleBookSlot = async () => {
+    try {
+      // Basic implementation for booking a slot
+      await createBooking({
+        assetId: '123', // Replace with real asset selection in full implementation
+        startTime: new Date().toISOString(),
+        endTime: new Date(Date.now() + 3600000).toISOString(),
+        purpose: 'Meeting',
+      }).unwrap();
+    } catch (err) {
+      console.error('Failed to book:', err);
+    }
+  };
+
+  if (isLoading) {
+    return <div className="text-white p-6">Loading bookings...</div>;
+  }
+
+  if (error) {
+    return <div className="text-red-400 p-6">Failed to load bookings.</div>;
+  }
+
   return (
     <div className="max-w-5xl mx-auto space-y-6 animate-in fade-in duration-500">
       <div className="space-y-1">
@@ -31,21 +61,29 @@ export default function ResourceBooking() {
             </div>
 
             <div className="relative h-65 mt-1">
-              {bookings.map((booking) => (
-                <BookingCard
-                  key={booking.id}
-                  top="0px"
-                  height="58px"
-                  label={booking.title}
-                  tone="bg-[#194f78] text-slate-100 border-slate-300/70"
-                />
-              ))}
+              {bookings.length === 0 ? (
+                <div className="text-slate-400 py-4">No bookings for this resource yet.</div>
+              ) : (
+                bookings.map((booking, index) => (
+                  <BookingCard
+                    key={booking.id || index}
+                    top={`${index * 60}px`} // Simple positioning logic based on index for demonstration
+                    height="58px"
+                    label={booking.purpose || booking.title || 'Reserved'}
+                    tone="bg-[#194f78] text-slate-100 border-slate-300/70"
+                  />
+                ))
+              )}
             </div>
           </div>
 
           <div className="mt-10 max-w-4xl pl-16">
-            <button className="bg-[#0e3b14] border border-emerald-200/40 text-slate-100 px-16 py-3 rounded-lg text-[15px] font-medium shadow-[inset_0_0_0_1px_rgba(255,255,255,0.05)]">
-              Book a slot
+            <button 
+              onClick={handleBookSlot}
+              disabled={isBooking}
+              className="bg-[#0e3b14] border border-emerald-200/40 text-slate-100 px-16 py-3 rounded-lg text-[15px] font-medium shadow-[inset_0_0_0_1px_rgba(255,255,255,0.05)] disabled:opacity-50"
+            >
+              {isBooking ? 'Booking...' : 'Book a slot'}
             </button>
           </div>
         </section>

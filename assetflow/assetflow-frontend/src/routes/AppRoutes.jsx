@@ -9,7 +9,7 @@ import OrganizationSetup from '../pages/admin/OrganizationSetup';
 import AssetsDirectory from '../pages/assets/AssetsDirectory';
 import AllocationTransfer from '../pages/allocations/AllocationTransfer';
 import ResourceBooking from '../pages/bookings/ResourceBooking';
-import MaintenanceManagement from '../pages/maintenance/MaintenanceManagement';
+import MaintenanceDesk from '../pages/maintenance/MaintenanceDesk';
 import AssetAudit from '../pages/audit/AssetAudit';
 import ReportsAnalytics from '../pages/reports/ReportsAnalytics';
 import NotificationsCenter from '../pages/notifications/NotificationsCenter';
@@ -32,7 +32,7 @@ export default function AppRoutes() {
         <Route path="assets" element={<AssetsDirectory />} />
         <Route path="allocations" element={<AllocationTransfer />} />
         <Route path="bookings" element={<ResourceBooking />} />
-        <Route path="maintenance" element={<MaintenanceManagement />} />
+        <Route path="maintenance" element={<MaintenanceDesk />} />
         <Route path="notifications" element={<NotificationsCenter />} />
 
         <Route element={<RoleProtectedRoute allowedRoles={['Admin', 'Asset Manager']} />}>
