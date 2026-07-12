@@ -2,8 +2,7 @@ import { useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Plus, Search, X } from 'lucide-react';
 
-import { useGetAssetsQuery, useCreateAssetMutation } from '../../store/apiSlice';
-
+import { useGetAssetsQuery, useCreateAssetMutation, useGetCategoriesQuery } from '../../store/apiSlice';
 const categories = ['All', 'Electronics', 'Furniture', 'Spaces'];
 const statuses = ['All', 'Available', 'Allocated', 'Maintenance', 'Reserved'];
 const departments = ['All', 'Engineering', 'Facilities'];
@@ -26,12 +25,14 @@ export default function AssetsDirectory() {
   const [departmentFilter, setDepartmentFilter] = useState('All');
   
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newAsset, setNewAsset] = useState({ name: '', asset_tag: '', serial_number: '', category_id: '' });
+  const [newAsset, setNewAsset] = useState({ name: '', categoryId: '', serialNumber: '', location: '', acquisitionDate: new Date().toISOString().split('T')[0] });
 
   const { data: assetsResponse, isLoading, error } = useGetAssetsQuery({ pageSize: 100 });
+  const { data: categoriesResponse } = useGetCategoriesQuery();
   const [createAsset, { isLoading: isCreating }] = useCreateAssetMutation();
   
   const rawAssets = assetsResponse?.data || [];
+  const dbCategories = categoriesResponse?.data || [];
   
   const mappedAssets = useMemo(() => {
     return rawAssets.map(a => ({
@@ -66,7 +67,7 @@ export default function AssetsDirectory() {
     try {
       await createAsset(newAsset).unwrap();
       setIsModalOpen(false);
-      setNewAsset({ name: '', asset_tag: '', serial_number: '', category_id: '' });
+      setNewAsset({ name: '', categoryId: '', serialNumber: '', location: '', acquisitionDate: new Date().toISOString().split('T')[0] });
     } catch (err) {
       console.error('Failed to create asset', err);
     }
@@ -158,16 +159,29 @@ export default function AssetsDirectory() {
             </div>
             <form onSubmit={handleCreateAsset} className="space-y-4">
               <div>
-                <label className="block text-sm text-slate-300 mb-1">Asset Tag</label>
-                <input required type="text" value={newAsset.asset_tag} onChange={e => setNewAsset({...newAsset, asset_tag: e.target.value})} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white" />
-              </div>
-              <div>
                 <label className="block text-sm text-slate-300 mb-1">Name</label>
                 <input required type="text" value={newAsset.name} onChange={e => setNewAsset({...newAsset, name: e.target.value})} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white" />
               </div>
               <div>
+                <label className="block text-sm text-slate-300 mb-1">Category</label>
+                <select required value={newAsset.categoryId} onChange={e => setNewAsset({...newAsset, categoryId: e.target.value})} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white">
+                  <option value="">Select Category</option>
+                  {dbCategories.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
                 <label className="block text-sm text-slate-300 mb-1">Serial Number</label>
-                <input type="text" value={newAsset.serial_number} onChange={e => setNewAsset({...newAsset, serial_number: e.target.value})} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+                <input type="text" value={newAsset.serialNumber} onChange={e => setNewAsset({...newAsset, serialNumber: e.target.value})} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+              </div>
+              <div>
+                <label className="block text-sm text-slate-300 mb-1">Location</label>
+                <input required type="text" value={newAsset.location} onChange={e => setNewAsset({...newAsset, location: e.target.value})} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+              </div>
+              <div>
+                <label className="block text-sm text-slate-300 mb-1">Acquisition Date</label>
+                <input required type="date" value={newAsset.acquisitionDate} onChange={e => setNewAsset({...newAsset, acquisitionDate: e.target.value})} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white" />
               </div>
               <button type="submit" disabled={isCreating} className="w-full bg-emerald-500 hover:bg-emerald-400 text-white rounded-lg py-2.5 font-semibold transition-colors mt-4">
                 {isCreating ? 'Saving...' : 'Save Asset'}
