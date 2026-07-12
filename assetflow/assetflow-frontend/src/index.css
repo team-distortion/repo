@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-blue: #1d4ed8;
+  --color-brand-blue-light: #3b82f6;
+  --color-bg-dark: #0f172a;
+  --color-card-dark: #1e293b;
+  
+  --color-status-available: #10b981;
+  --color-status-allocated: #3b82f6;
+  --color-status-maintenance: #f59e0b;
+  --color-status-reserved: #8b5cf6;
+  --color-status-retired: #6b7280;
+}
+
+@layer base {
+  body {
+    @apply bg-slate-900 text-slate-100;
+  }
+}
+
+.glass-panel {
+  @apply bg-slate-800/80 backdrop-blur-md border border-slate-700;
+}
