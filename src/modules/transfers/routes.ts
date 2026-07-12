@@ -8,17 +8,18 @@ const router = Router();
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { page = 1, pageSize = 10 } = req.query;
-    const { limit, offset } = buildLimitOffset(Number(page), Number(pageSize));
+    const limit = Number(pageSize) || 10;
+    const offset = (Number(page) - 1) * limit;
     const countRes = await query('SELECT COUNT(*) FROM transfers');
     const result = await query('SELECT * FROM transfers ORDER BY created_at DESC LIMIT $1 OFFSET $2', [limit, offset]);
-    sendSuccess(res, result.rows, 200, buildPaginationMeta(parseInt(countRes.rows[0].count), Number(page), Number(pageSize)));
+    sendSuccess(res, result.rows, 200, buildPaginationMeta(Number(page), limit, parseInt(countRes.rows[0].count)));
   } catch (err) { next(err); }
 });
 
 router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const result = await query('SELECT * FROM transfers WHERE id = $1', [req.params.id]);
-    if (result.rows.length === 0) throw ErrorResponses.notFound('Transfer not found');
+    if (result.rows.length === 0) throw ErrorResponses.NotFound('Transfer not found');
     sendSuccess(res, result.rows[0]);
   } catch (err) { next(err); }
 });
@@ -31,7 +32,8 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
        VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
       [assetId, allocationId, req.user?.userId, requestedToType, requestedToId, reason]
     );
-    await logActivity(req, 'TransferRequested', 'Transfer', result.rows[0].id);
+    const pool = require('@utils/database').getPool();
+    await logActivity(pool, 'TransferRequested', 'Transfer', result.rows[0].id, req.user?.userId || '');
     sendSuccess(res, result.rows[0], 201);
   } catch (err) { next(err); }
 });
@@ -40,7 +42,7 @@ router.post('/:id/approve', requireRole('Admin', 'AssetManager'), async (req: Re
   try {
     const result = await transaction(async (client) => {
       const transfer = await client.query('SELECT * FROM transfers WHERE id = $1 AND status = $2', [req.params.id, 'Requested']);
-      if (transfer.rows.length === 0) throw ErrorResponses.notFound('Transfer request not found or not in Requested state');
+      if (transfer.rows.length === 0) throw ErrorResponses.NotFound('Transfer request not found or not in Requested state');
       
       const tr = transfer.rows[0];
 
@@ -63,10 +65,10 @@ router.post('/:id/approve', requireRole('Admin', 'AssetManager'), async (req: Re
         [req.user?.userId, req.params.id]
       );
       
+      await logActivity(client, 'TransferApproved', 'Transfer', req.params.id, req.user?.userId || '');
       return updatedTr.rows[0];
     });
 
-    await logActivity(req, 'TransferApproved', 'Transfer', req.params.id);
     sendSuccess(res, result);
   } catch (err) { next(err); }
 });
@@ -74,8 +76,9 @@ router.post('/:id/approve', requireRole('Admin', 'AssetManager'), async (req: Re
 router.post('/:id/reject', requireRole('Admin', 'AssetManager'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const result = await query(`UPDATE transfers SET status = 'Rejected', approved_by = $1, updated_at = now() WHERE id = $2 RETURNING *`, [req.user?.userId, req.params.id]);
-    if (result.rows.length === 0) throw ErrorResponses.notFound('Transfer not found');
-    await logActivity(req, 'TransferRejected', 'Transfer', req.params.id);
+    if (result.rows.length === 0) throw ErrorResponses.NotFound('Transfer not found');
+    const pool = require('@utils/database').getPool();
+    await logActivity(pool, 'TransferRejected', 'Transfer', req.params.id, req.user?.userId || '');
     sendSuccess(res, result.rows[0]);
   } catch (err) { next(err); }
 });
@@ -85,7 +88,8 @@ router.post('/:id/cancel', async (req: Request, res: Response, next: NextFunctio
     const result = await query(`UPDATE transfers SET status = 'Requested' /* wait, cancel? no status in schema for Cancelled? 'Rejected' or delete it */
        WHERE id = $1 AND status = 'Requested' RETURNING *`, [req.params.id]); // Actually schema has Requested, Approved, Rejected, Re-allocated. We will just delete it.
     await query('DELETE FROM transfers WHERE id = $1 AND status = $2', [req.params.id, 'Requested']);
-    await logActivity(req, 'TransferCancelled', 'Transfer', req.params.id);
+    const pool = require('@utils/database').getPool();
+    await logActivity(pool, 'TransferCancelled', 'Transfer', req.params.id, req.user?.userId || '');
     sendSuccess(res, { message: 'Transfer cancelled' });
   } catch (err) { next(err); }
 });

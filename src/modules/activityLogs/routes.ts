@@ -9,7 +9,9 @@ const router = Router();
 // Get activity logs (Admin / AssetManager)
 router.get('/', requireRole('Admin', 'AssetManager'), async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { limit, offset, page } = buildLimitOffset(req);
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.pageSize) || 10;
+    const offset = (page - 1) * limit;
     
     // Optional filters
     const targetEntity = req.query.targetEntity as string;
@@ -32,7 +34,7 @@ router.get('/', requireRole('Admin', 'AssetManager'), async (req: Request, res: 
     
     const countResult = await query(`SELECT COUNT(*) FROM activity_logs ${whereSql}`, params);
     const total = parseInt(countResult.rows[0].count, 10);
-    const pagination = buildPaginationMeta(total, limit, page);
+    const pagination = buildPaginationMeta(page, limit, total);
     
     const result = await query(`
       SELECT al.*, u.name as user_name 

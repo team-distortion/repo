@@ -8,8 +8,10 @@ const router = Router();
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { page = 1, pageSize = 10, sortBy = 'created_at', sortOrder = 'desc' } = req.query;
-    const { limit, offset } = buildLimitOffset(Number(page), Number(pageSize));
-    const orderBy = buildOrderByClause(String(sortBy), String(sortOrder));
+    const pageStr = Number(page) || 1;
+    const limit = Number(pageSize) || 10;
+    const offset = (pageStr - 1) * limit;
+    const orderBy = buildOrderByClause(String(sortBy), String(sortOrder) as any);
 
     const countRes = await query('SELECT COUNT(*) FROM assets');
     const totalItems = parseInt(countRes.rows[0].count, 10);
@@ -19,7 +21,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       [limit, offset]
     );
 
-    const pagination = buildPaginationMeta(totalItems, Number(page), Number(pageSize));
+    const pagination = buildPaginationMeta(pageStr, limit, totalItems);
     sendSuccess(res, result.rows, 200, pagination);
   } catch (err) {
     next(err);
@@ -32,7 +34,7 @@ router.post('/', requireRole('Admin', 'AssetManager'), async (req: Request, res:
     
     // Minimal validation
     if (!name || !categoryId || !location) {
-      throw ErrorResponses.badRequest('Missing required fields');
+      throw ErrorResponses.ValidationError('Missing required fields');
     }
 
     const assetTag = 'AF-' + Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
@@ -44,7 +46,7 @@ router.post('/', requireRole('Admin', 'AssetManager'), async (req: Request, res:
     );
 
     const asset = result.rows[0];
-    await logActivity(req, 'AssetCreated', 'Asset', asset.id, { assetTag: asset.asset_tag });
+    await logActivity(require('@utils/database').getPool(), 'AssetCreated', 'Asset', asset.id, req.user?.userId || '', { assetTag: asset.asset_tag });
     
     sendSuccess(res, asset, 201);
   } catch (err) {
@@ -55,7 +57,7 @@ router.post('/', requireRole('Admin', 'AssetManager'), async (req: Request, res:
 router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const result = await query('SELECT * FROM assets WHERE id = $1', [req.params.id]);
-    if (result.rows.length === 0) throw ErrorResponses.notFound('Asset not found');
+    if (result.rows.length === 0) throw ErrorResponses.NotFound('Asset not found');
     sendSuccess(res, result.rows[0]);
   } catch (err) {
     next(err);
@@ -71,9 +73,9 @@ router.put('/:id', requireRole('Admin', 'AssetManager'), async (req: Request, re
        WHERE id = $5 RETURNING *`,
       [name, condition, location, isShared, req.params.id]
     );
-    if (result.rows.length === 0) throw ErrorResponses.notFound('Asset not found');
+    if (result.rows.length === 0) throw ErrorResponses.NotFound('Asset not found');
     
-    await logActivity(req, 'AssetUpdated', 'Asset', req.params.id, { updates: req.body });
+    await logActivity(require('@utils/database').getPool(), 'AssetUpdated', 'Asset', req.params.id, req.user?.userId || '', { updates: req.body });
     sendSuccess(res, result.rows[0]);
   } catch (err) {
     next(err);
@@ -83,9 +85,9 @@ router.put('/:id', requireRole('Admin', 'AssetManager'), async (req: Request, re
 router.delete('/:id', requireRole('Admin', 'AssetManager'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const result = await query('DELETE FROM assets WHERE id = $1 RETURNING *', [req.params.id]);
-    if (result.rows.length === 0) throw ErrorResponses.notFound('Asset not found');
+    if (result.rows.length === 0) throw ErrorResponses.NotFound('Asset not found');
     
-    await logActivity(req, 'AssetDeleted', 'Asset', req.params.id);
+    await logActivity(require('@utils/database').getPool(), 'AssetDeleted', 'Asset', req.params.id, req.user?.userId || '');
     sendSuccess(res, { message: 'Asset deleted successfully' });
   } catch (err) {
     next(err);
@@ -96,9 +98,9 @@ router.patch('/:id/status', requireRole('Admin', 'AssetManager'), async (req: Re
   try {
     const { status } = req.body;
     const result = await query('UPDATE assets SET status = $1, updated_at = now() WHERE id = $2 RETURNING *', [status, req.params.id]);
-    if (result.rows.length === 0) throw ErrorResponses.notFound('Asset not found');
+    if (result.rows.length === 0) throw ErrorResponses.NotFound('Asset not found');
     
-    await logActivity(req, 'AssetStatusChanged', 'Asset', req.params.id, { status });
+    await logActivity(require('@utils/database').getPool(), 'AssetStatusChanged', 'Asset', req.params.id, req.user?.userId || '', { status });
     sendSuccess(res, result.rows[0]);
   } catch (err) {
     next(err);

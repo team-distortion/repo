@@ -8,17 +8,18 @@ const router = Router();
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { page = 1, pageSize = 10 } = req.query;
-    const { limit, offset } = buildLimitOffset(Number(page), Number(pageSize));
+    const limit = Number(pageSize) || 10;
+    const offset = (Number(page) - 1) * limit;
     const countRes = await query('SELECT COUNT(*) FROM maintenance_requests');
     const result = await query('SELECT * FROM maintenance_requests ORDER BY created_at DESC LIMIT $1 OFFSET $2', [limit, offset]);
-    sendSuccess(res, result.rows, 200, buildPaginationMeta(parseInt(countRes.rows[0].count), Number(page), Number(pageSize)));
+    sendSuccess(res, result.rows, 200, buildPaginationMeta(Number(page), limit, parseInt(countRes.rows[0].count)));
   } catch (err) { next(err); }
 });
 
 router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const result = await query('SELECT * FROM maintenance_requests WHERE id = $1', [req.params.id]);
-    if (result.rows.length === 0) throw ErrorResponses.notFound('Maintenance request not found');
+    if (result.rows.length === 0) throw ErrorResponses.NotFound('Maintenance request not found');
     sendSuccess(res, result.rows[0]);
   } catch (err) { next(err); }
 });
@@ -31,7 +32,8 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
        VALUES ($1, $2, $3, $4) RETURNING *`,
       [assetId, req.user?.userId, description, priority || 'Medium']
     );
-    await logActivity(req, 'MaintenanceRequested', 'Maintenance', result.rows[0].id);
+    const pool = require('@utils/database').getPool();
+    await logActivity(pool, 'MaintenanceRequested', 'Maintenance', result.rows[0].id, req.user?.userId || '');
     sendSuccess(res, result.rows[0], 201);
   } catch (err) { next(err); }
 });
@@ -43,8 +45,9 @@ router.put('/:id', requireRole('Admin', 'AssetManager'), async (req: Request, re
       `UPDATE maintenance_requests SET description = COALESCE($1, description), priority = COALESCE($2, priority), updated_at = now() WHERE id = $3 RETURNING *`,
       [description, priority, req.params.id]
     );
-    if (result.rows.length === 0) throw ErrorResponses.notFound('Maintenance request not found');
-    await logActivity(req, 'MaintenanceUpdated', 'Maintenance', req.params.id);
+    if (result.rows.length === 0) throw ErrorResponses.NotFound('Maintenance request not found');
+    const pool = require('@utils/database').getPool();
+    await logActivity(pool, 'MaintenanceUpdated', 'Maintenance', req.params.id, req.user?.userId || '');
     sendSuccess(res, result.rows[0]);
   } catch (err) { next(err); }
 });
@@ -53,7 +56,7 @@ router.post('/:id/approve', requireRole('Admin', 'AssetManager'), async (req: Re
   try {
     const result = await transaction(async (client) => {
       const maint = await client.query(`UPDATE maintenance_requests SET status = 'Approved', approved_by = $1, updated_at = now() WHERE id = $2 AND status = 'Pending' RETURNING *`, [req.user?.userId, req.params.id]);
-      if (maint.rows.length === 0) throw ErrorResponses.notFound('Request not found or not Pending');
+      if (maint.rows.length === 0) throw ErrorResponses.NotFound('Request not found or not Pending');
       
       const m = maint.rows[0];
       await client.query(`UPDATE assets SET status = 'Under Maintenance', updated_at = now() WHERE id = $1`, [m.asset_id]);
@@ -64,7 +67,8 @@ router.post('/:id/approve', requireRole('Admin', 'AssetManager'), async (req: Re
       return m;
     });
 
-    await logActivity(req, 'MaintenanceApproved', 'Maintenance', req.params.id);
+    const pool = require('@utils/database').getPool();
+    await logActivity(pool, 'MaintenanceApproved', 'Maintenance', req.params.id, req.user?.userId || '');
     sendSuccess(res, result);
   } catch (err) { next(err); }
 });
@@ -72,8 +76,9 @@ router.post('/:id/approve', requireRole('Admin', 'AssetManager'), async (req: Re
 router.post('/:id/reject', requireRole('Admin', 'AssetManager'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const result = await query(`UPDATE maintenance_requests SET status = 'Rejected', approved_by = $1, updated_at = now() WHERE id = $2 RETURNING *`, [req.user?.userId, req.params.id]);
-    if (result.rows.length === 0) throw ErrorResponses.notFound('Request not found');
-    await logActivity(req, 'MaintenanceRejected', 'Maintenance', req.params.id);
+    if (result.rows.length === 0) throw ErrorResponses.NotFound('Request not found');
+    const pool = require('@utils/database').getPool();
+    await logActivity(pool, 'MaintenanceRejected', 'Maintenance', req.params.id, req.user?.userId || '');
     sendSuccess(res, result.rows[0]);
   } catch (err) { next(err); }
 });
@@ -82,8 +87,9 @@ router.post('/:id/assign', requireRole('Admin', 'AssetManager'), async (req: Req
   try {
     const { technicianName } = req.body;
     const result = await query(`UPDATE maintenance_requests SET status = 'TechnicianAssigned', technician_name = $1, updated_at = now() WHERE id = $2 RETURNING *`, [technicianName, req.params.id]);
-    if (result.rows.length === 0) throw ErrorResponses.notFound('Request not found');
-    await logActivity(req, 'MaintenanceAssigned', 'Maintenance', req.params.id);
+    if (result.rows.length === 0) throw ErrorResponses.NotFound('Request not found');
+    const pool = require('@utils/database').getPool();
+    await logActivity(pool, 'MaintenanceAssigned', 'Maintenance', req.params.id, req.user?.userId || '');
     sendSuccess(res, result.rows[0]);
   } catch (err) { next(err); }
 });
@@ -93,7 +99,7 @@ router.post('/:id/resolve', requireRole('Admin', 'AssetManager'), async (req: Re
     const { resolutionNotes } = req.body;
     const result = await transaction(async (client) => {
       const maint = await client.query(`UPDATE maintenance_requests SET status = 'Resolved', resolution_notes = $1, resolved_at = now(), updated_at = now() WHERE id = $2 RETURNING *`, [resolutionNotes, req.params.id]);
-      if (maint.rows.length === 0) throw ErrorResponses.notFound('Request not found');
+      if (maint.rows.length === 0) throw ErrorResponses.NotFound('Request not found');
       
       const m = maint.rows[0];
 
@@ -109,7 +115,8 @@ router.post('/:id/resolve', requireRole('Admin', 'AssetManager'), async (req: Re
       return m;
     });
 
-    await logActivity(req, 'MaintenanceResolved', 'Maintenance', req.params.id);
+    const pool = require('@utils/database').getPool();
+    await logActivity(pool, 'MaintenanceResolved', 'Maintenance', req.params.id, req.user?.userId || '');
     sendSuccess(res, result);
   } catch (err) { next(err); }
 });
