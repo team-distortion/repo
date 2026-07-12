@@ -2,6 +2,9 @@
 
 AssetFlow is a modern, enterprise-grade application designed to track, allocate, book, and audit organizational physical and digital assets. It features a complete Express/PostgreSQL backend coupled with a premium, responsive React/Redux frontend.
 
+> [!NOTE]
+> **Most Stable Version**: Commit [`23e824c5a7e8a0ea973fda72ae61ad75261a4211`](https://github.com/team-distortion/repo/commit/23e824c5a7e8a0ea973fda72ae61ad75261a4211) is marked as the most stable release of this application.
+
 ---
 
 ## 🚀 Key Features
