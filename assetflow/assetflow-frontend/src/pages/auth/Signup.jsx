@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { loginSuccess } from '../../store/authSlice';
+import { useSignupMutation } from '../../store/apiSlice';
 import { Package } from 'lucide-react';
 
 export default function Signup() {
@@ -11,14 +12,16 @@ export default function Signup() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const handleSignup = (e) => {
+  const [signup, { isLoading, error }] = useSignupMutation();
+
+  const handleSignup = async (e) => {
     e.preventDefault();
-    // New signups are strictly Employees initially
-    dispatch(loginSuccess({
-      user: { email, name },
-      role: 'Employee'
-    }));
-    navigate('/');
+    try {
+      await signup({ name, email, password }).unwrap();
+      navigate('/login');
+    } catch (err) {
+      console.error('Signup failed', err);
+    }
   };
 
   return (
@@ -68,11 +71,13 @@ export default function Signup() {
             />
           </div>
 
+          {error && <p className="text-red-500 text-sm">{error.data?.message || 'Signup failed'}</p>}
           <button 
             type="submit" 
-            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(37,99,235,0.3)] hover:shadow-[0_0_25px_rgba(37,99,235,0.5)]"
+            disabled={isLoading}
+            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(37,99,235,0.3)] hover:shadow-[0_0_25px_rgba(37,99,235,0.5)] disabled:opacity-50"
           >
-            Sign Up
+            {isLoading ? 'Signing Up...' : 'Sign Up'}
           </button>
         </form>
 

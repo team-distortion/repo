@@ -31,20 +31,15 @@ export default function ResourceBooking() {
             </div>
 
             <div className="relative h-65 mt-1">
-              <BookingCard
-                top="0px"
-                height="58px"
-                label="Booked - Procurement Team - 9 to 10"
-                tone="bg-[#194f78] text-slate-100 border-slate-300/70"
-              />
-              <BookingCard
-                top="45px"
-                height="62px"
-                label="Requested 9:30 to 10:30 - conflict - slot is unavailable"
-                tone="border-red-300/80 text-slate-100 border-dashed"
-                dashed
-                muted
-              />
+              {bookings.map((booking) => (
+                <BookingCard
+                  key={booking.id}
+                  top="0px"
+                  height="58px"
+                  label={booking.title}
+                  tone="bg-[#194f78] text-slate-100 border-slate-300/70"
+                />
+              ))}
             </div>
           </div>
 
