@@ -2,43 +2,28 @@ import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { loginSuccess } from '../../store/authSlice';
+import { useLoginMutation } from '../../store/apiSlice';
 import { Package } from 'lucide-react';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  const [login, { isLoading, error: loginError }] = useLoginMutation();
+
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError(null);
-    setLoading(true);
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-      
-      const json = await response.json();
-      if (!response.ok) {
-        throw new Error(json.error?.message || 'Login failed');
-      }
-      
-      const { token, user } = json.data;
+      const response = await login({ email, password }).unwrap();
       dispatch(loginSuccess({
-        user,
-        role: user.role,
-        token
+        user: response.data.user,
+        token: response.data.token
       }));
       navigate('/');
     } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      console.error('Login failed', err);
     }
   };
 
@@ -58,9 +43,9 @@ export default function Login() {
         </div>
 
         <form onSubmit={handleLogin} className="space-y-6 relative z-10">
-          {error && (
+          {loginError && (
             <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3.5 rounded-xl text-sm font-medium">
-              {error}
+              {loginError.data?.error?.message || loginError.data?.message || 'Login failed'}
             </div>
           )}
           <div>
@@ -92,10 +77,10 @@ export default function Login() {
 
           <button 
             type="submit" 
-            disabled={loading}
+            disabled={isLoading}
             className="w-full bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(37,99,235,0.3)] hover:shadow-[0_0_25px_rgba(37,99,235,0.5)] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Signing In...' : 'Sign In'}
+            {isLoading ? 'Signing In...' : 'Sign In'}
           </button>
         </form>
 
