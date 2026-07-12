@@ -9,9 +9,8 @@ export type UserRole = 'Admin' | 'AssetManager' | 'DepartmentHead' | 'Employee';
 
 export interface User {
   userId: string;
+  name: string;
   email: string;
-  firstName: string;
-  lastName: string;
   role: UserRole;
   departmentId: string | null;
   status: 'Active' | 'Inactive' | 'Suspended';
@@ -88,7 +87,7 @@ export type AssetStatus =
   | 'Retired'
   | 'Disposed';
 
-export type AssetCondition = 'Excellent' | 'Good' | 'Fair' | 'Poor' | 'Unknown';
+export type AssetCondition = 'New' | 'Good' | 'Fair' | 'Poor' | 'Damaged';
 
 export interface Asset {
   assetId: string;
@@ -101,7 +100,7 @@ export interface Asset {
   condition: AssetCondition;
   location: string;
   status: AssetStatus;
-  isBookable: boolean;
+  isShared: boolean;
   photoIds?: string[];
   documentIds?: string[];
   customFields?: Record<string, any>;
@@ -122,7 +121,12 @@ export interface Allocation {
   allocatedDate: Date;
   expectedReturnDate?: Date;
   returnedDate?: Date;
-  status: 'Active' | 'Completed' | 'Transferred';
+  isPausedForMaintenance: boolean;
+  returnStatus?: 'PendingApproval' | 'Approved' | 'Rejected';
+  returnRequestedAt?: Date;
+  conditionCheckInNotes?: string;
+  approvedReturnBy?: string;
+  status: 'Active' | 'Completed' | 'Transferred' | 'Paused';
   notes?: string;
   createdAt: Date;
   updatedAt: Date;

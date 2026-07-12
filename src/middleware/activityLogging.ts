@@ -71,53 +71,38 @@ export function requestLogger(
  */
 export async function logActivity(
   client: PoolClient,
-  action: ActivityAction,
-  entityType: string,
-  entityId: string,
+  action: string,
+  targetEntity: string,
+  targetId: string,
   userId: string,
-  userName: string,
-  userRole: string,
-  changes?: Record<string, any>,
-  ipAddress?: string,
-  userAgent?: string
+  metadata?: Record<string, any>
 ): Promise<void> {
-  if (!process.env.ENABLE_ACTIVITY_LOGGING || process.env.ENABLE_ACTIVITY_LOGGING !== 'true') {
+  const { config } = require('@config');
+  if (!config.features.enableActivityLogging) {
     return;
   }
 
-  const logId = uuidv4();
-  const timestamp = new Date();
-
   const sql = `
-    INSERT INTO activity_log (
-      logId, actor_userId, actor_name, actor_role, action, 
-      entityType, entityId, changes, timestamp, ipAddress, userAgent
-    )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+    INSERT INTO activity_logs (user_id, action, target_entity, target_id, metadata)
+    VALUES ($1, $2, $3, $4, $5)
   `;
 
   const params = [
-    logId,
     userId,
-    userName,
-    userRole,
     action,
-    entityType,
-    entityId,
-    JSON.stringify(changes || {}),
-    timestamp,
-    ipAddress || null,
-    userAgent || null,
+    targetEntity,
+    targetId,
+    JSON.stringify(metadata || {}),
   ];
 
   try {
     await client.query(sql, params);
-    logger.debug('Activity logged', { action, entityType, entityId });
+    logger.debug('Activity logged', { action, targetEntity, targetId });
   } catch (error) {
     logger.error('Failed to log activity', error, {
       action,
-      entityType,
-      entityId,
+      targetEntity,
+      targetId,
     });
     // Don't throw - activity logging should not fail the main operation
   }
