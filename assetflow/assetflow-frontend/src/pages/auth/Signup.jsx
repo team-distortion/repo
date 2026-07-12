@@ -8,17 +8,34 @@ export default function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const handleSignup = (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
-    // New signups are strictly Employees initially
-    dispatch(loginSuccess({
-      user: { email, name },
-      role: 'Employee'
-    }));
-    navigate('/');
+    setError(null);
+    setLoading(true);
+    try {
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password }),
+      });
+      
+      const json = await response.json();
+      if (!response.ok) {
+        throw new Error(json.error?.message || 'Registration failed');
+      }
+      
+      // On success, redirect to login page
+      navigate('/login', { state: { message: 'Account created successfully! Please sign in.' } });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -35,6 +52,11 @@ export default function Signup() {
         </div>
 
         <form onSubmit={handleSignup} className="space-y-6 relative z-10">
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3.5 rounded-xl text-sm font-medium">
+              {error}
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-2">Full Name</label>
             <input 
@@ -70,9 +92,10 @@ export default function Signup() {
 
           <button 
             type="submit" 
-            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(37,99,235,0.3)] hover:shadow-[0_0_25px_rgba(37,99,235,0.5)]"
+            disabled={loading}
+            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(37,99,235,0.3)] hover:shadow-[0_0_25px_rgba(37,99,235,0.5)] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Sign Up
+            {loading ? 'Creating Account...' : 'Sign Up'}
           </button>
         </form>
 
