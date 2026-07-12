@@ -11,6 +11,7 @@ import { sendSuccess, ErrorResponses } from '@utils/errors';
 import { generateToken, generateRefreshToken, authMiddleware } from '@middleware';
 import { logActivity } from '@middleware';
 import logger from '@utils/logger';
+import { EmailService } from '@services/emailService';
 
 const router = Router();
 
@@ -161,15 +162,26 @@ router.post('/forgot-password', async (req: Request, res: Response, next: NextFu
     const resetToken = crypto.randomUUID();
     const hashedToken = await bcrypt.hash(resetToken, 12);
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+    let tokenId: string | null = null;
     
     await transaction(async (client) => {
-      await client.query(`
+      const insertResult = await client.query(`
         INSERT INTO password_reset_tokens (user_id, token_hash, expires_at)
         VALUES ($1, $2, $3)
+        RETURNING id
       `, [user.id, hashedToken, expiresAt]);
-      
-      logger.info(`Password reset requested for user ${user.id}. Token: ${resetToken}`);
+
+      tokenId = insertResult.rows[0].id;
     });
+
+    try {
+      await EmailService.sendPasswordResetEmail(email, resetToken);
+    } catch (error) {
+      if (tokenId) {
+        await query('DELETE FROM password_reset_tokens WHERE id = $1', [tokenId]);
+      }
+      throw ErrorResponses.InternalError('Unable to send password reset email');
+    }
     
     sendSuccess(res, { message: 'If an account with that email exists, a reset link has been sent' }, 200);
   } catch (error) {

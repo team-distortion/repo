@@ -12,6 +12,7 @@ export const config = {
   app: {
     port: parseInt(process.env.APP_PORT || '3000', 10),
     host: process.env.APP_HOST || 'localhost',
+    frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5173',
     env: process.env.NODE_ENV || 'development',
     isDev: process.env.NODE_ENV === 'development',
     isProd: process.env.NODE_ENV === 'production',
@@ -93,6 +94,10 @@ export function validateConfig(): void {
     if (config.app.isProd) {
       errors.push('DB_PASSWORD must be changed from default in production');
     }
+  }
+
+  if (!config.email.smtpHost || !config.email.smtpUser || !config.email.smtpPassword) {
+    errors.push('SMTP_HOST, SMTP_USER, and SMTP_PASSWORD must be set for email delivery');
   }
 
   if (errors.length > 0) {

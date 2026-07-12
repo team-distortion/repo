@@ -7,26 +7,43 @@ import { Package } from 'lucide-react';
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // Mock login logic mapping emails to roles for demonstration
-    let assignedRole = 'Employee';
-    if (email.includes('admin')) assignedRole = 'Admin';
-    else if (email.includes('manager')) assignedRole = 'Asset Manager';
-    else if (email.includes('head')) assignedRole = 'Department Head';
-
-    dispatch(loginSuccess({
-      user: { email, name: email.split('@')[0] },
-      role: assignedRole
-    }));
-    navigate('/');
+    setError(null);
+    setLoading(true);
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      
+      const json = await response.json();
+      if (!response.ok) {
+        throw new Error(json.error?.message || 'Login failed');
+      }
+      
+      const { token, user } = json.data;
+      dispatch(loginSuccess({
+        user,
+        role: user.role,
+        token
+      }));
+      navigate('/');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-900 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-slate-800 via-slate-900 to-black p-4">
+    <div className="min-h-screen flex items-center justify-center bg-slate-900 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-slate-800 via-slate-900 to-black p-4">
       <div className="glass-panel p-10 rounded-3xl w-full max-w-md shadow-2xl relative overflow-hidden">
         {/* Decorative elements */}
         <div className="absolute -top-20 -right-20 w-40 h-40 bg-blue-500 rounded-full blur-3xl opacity-20"></div>
@@ -41,6 +58,11 @@ export default function Login() {
         </div>
 
         <form onSubmit={handleLogin} className="space-y-6 relative z-10">
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3.5 rounded-xl text-sm font-medium">
+              {error}
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-2">Email Address</label>
             <input 
@@ -56,7 +78,7 @@ export default function Login() {
           <div>
             <div className="flex justify-between mb-2">
               <label className="block text-sm font-medium text-slate-300">Password</label>
-              <a href="#" className="text-sm text-blue-400 hover:text-blue-300 transition-colors">Forgot password?</a>
+              <Link to="/reset-password" className="text-sm text-blue-400 hover:text-blue-300 transition-colors">Forgot password?</Link>
             </div>
             <input 
               type="password" 
@@ -70,9 +92,10 @@ export default function Login() {
 
           <button 
             type="submit" 
-            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(37,99,235,0.3)] hover:shadow-[0_0_25px_rgba(37,99,235,0.5)]"
+            disabled={loading}
+            className="w-full bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(37,99,235,0.3)] hover:shadow-[0_0_25px_rgba(37,99,235,0.5)] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Sign In
+            {loading ? 'Signing In...' : 'Sign In'}
           </button>
         </form>
 

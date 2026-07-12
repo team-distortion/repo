@@ -3,6 +3,7 @@ import MainLayout from '../components/layout/MainLayout';
 import RoleProtectedRoute from './RoleProtectedRoute';
 import Login from '../pages/auth/Login';
 import Signup from '../pages/auth/Signup';
+import ResetPassword from '../pages/auth/ResetPassword';
 import Dashboard from '../pages/Dashboard';
 import OrganizationSetup from '../pages/admin/OrganizationSetup';
 import AssetsDirectory from '../pages/assets/AssetsDirectory';
@@ -18,6 +19,7 @@ export default function AppRoutes() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       
       <Route path="/" element={<MainLayout />}>
         <Route index element={<Dashboard />} />
