@@ -57,7 +57,7 @@ Follow these steps to set up and run the project locally.
 
 1. Navigate to the repository root directory:
    ```bash
-   cd "/d/Ashish/Sanidhiya work/Asset-flow-by-TeamDistortion/repo"
+   cd "./Asset-flow-by-TeamDistortion/repo"
    ```
 2. Start the PostgreSQL container in detached mode:
    ```bash
