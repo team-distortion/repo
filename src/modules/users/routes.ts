@@ -5,7 +5,7 @@ import { requireRole } from '@middleware';
 import { mapRowToEntity, isValidUUID, isValidEmail, isStrongPassword } from '@utils/helpers';
 import { buildPaginationMeta, buildLimitOffset, buildOrderByClause } from '@middleware';
 import { logActivity } from '@middleware';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 const router = Router();
 
