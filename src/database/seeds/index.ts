@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { initializeDatabase, query, closeDatabase } from '../../utils/database';
 import logger from '../../utils/logger';
 
