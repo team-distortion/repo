@@ -48,7 +48,7 @@ AssetFlow is a modern, enterprise-grade application designed to track, allocate,
 
 ## 🏁 How to Start the Application
 
-Follow these steps to set up and run the project locally.
+Follow these steps in order to set up and run the project locally.
 
 ### Prerequisites
 * **Node.js** (version 18 or higher recommended)
@@ -56,28 +56,7 @@ Follow these steps to set up and run the project locally.
 
 ---
 
-### Step 1: Set Up the Database
-
-1. Navigate to the repository root directory:
-   ```bash
-   cd "./Asset-flow-by-TeamDistortion/repo"
-   ```
-2. Start the PostgreSQL container in detached mode:
-   ```bash
-   docker-compose up -d
-   ```
-3. Run migrations to initialize the database tables:
-   ```bash
-   npm run db:migrate
-   ```
-4. Seed the database with mock organization data and the default admin user:
-   ```bash
-   npm run db:seed
-   ```
-
----
-
-### Step 2: Configure & Start the Backend
+### Step 1: Set Up & Configure the Backend
 
 The backend is located in the **root directory (`/`)**.
 
@@ -85,18 +64,40 @@ The backend is located in the **root directory (`/`)**.
    ```bash
    cp .env.example .env
    ```
-2. Run npm install to fetch backend node modules:
+2. Install backend dependencies:
    ```bash
    npm install
    ```
-3. Launch the backend server in development mode (starts on port `3000` by default):
+
+---
+
+### Step 2: Set Up the Database
+
+1. Start the PostgreSQL container in detached mode:
+   ```bash
+   docker-compose up -d
+   ```
+2. Run migrations to initialize the database tables:
+   ```bash
+   npm run db:migrate
+   ```
+3. Seed the database with mock organization data and the default admin user:
+   ```bash
+   npm run db:seed
+   ```
+
+---
+
+### Step 3: Start the Backend
+
+1. Launch the backend server in development mode (starts on port `3000` by default):
    ```bash
    npm run dev
    ```
 
 ---
 
-### Step 3: Configure & Start the Frontend
+### Step 4: Configure & Start the Frontend
 
 The frontend is located in the **`/assetflow/assetflow-frontend`** folder.
 
@@ -104,15 +105,19 @@ The frontend is located in the **`/assetflow/assetflow-frontend`** folder.
    ```bash
    cd assetflow/assetflow-frontend
    ```
-2. Install frontend dependencies:
+2. Create a `.env` file in the frontend directory (using `.env.example` as a template):
+   ```bash
+   cp .env.example .env
+   ```
+3. Install frontend dependencies:
    ```bash
    npm install
    ```
-3. Run the frontend Vite development server:
+4. Run the frontend Vite development server:
    ```bash
    npm run dev
    ```
-4. Access the web app in your browser at `http://localhost:5173`.
+5. Access the web app in your browser at `http://localhost:5173`.
 
 ---
 
