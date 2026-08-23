@@ -251,6 +251,24 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ['Audit'],
     }),
+    
+    // Attachments
+    uploadAttachment: builder.mutation({
+      query: (formData) => ({
+        url: '/attachments',
+        method: 'POST',
+        body: formData,
+      }),
+    }),
+    getAttachments: builder.query({
+      query: ({ entity_type, entity_id }) => `/attachments/${entity_type}/${entity_id}`,
+    }),
+    deleteAttachment: builder.mutation({
+      query: (id) => ({
+        url: `/attachments/${id}`,
+        method: 'DELETE',
+      }),
+    }),
   }),
 });
 
@@ -286,4 +304,7 @@ export const {
   useGetAuditsQuery,
   useGetAuditDetailsQuery,
   useCloseAuditMutation,
+  useUploadAttachmentMutation,
+  useGetAttachmentsQuery,
+  useDeleteAttachmentMutation,
 } = apiSlice;

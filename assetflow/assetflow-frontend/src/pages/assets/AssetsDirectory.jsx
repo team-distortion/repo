@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Plus, Search, X } from 'lucide-react';
 
-import { useGetAssetsQuery, useCreateAssetMutation, useGetCategoriesQuery } from '../../store/apiSlice';
+import { useGetAssetsQuery, useCreateAssetMutation, useGetCategoriesQuery, useUploadAttachmentMutation } from '../../store/apiSlice';
+import FileUploadDropzone from '../../components/ui/FileUploadDropzone';
 const categories = ['All', 'Electronics', 'Furniture', 'Spaces'];
 const statuses = ['All', 'Available', 'Allocated', 'Maintenance', 'Reserved'];
 const departments = ['All', 'Engineering', 'Facilities'];
@@ -26,26 +27,32 @@ export default function AssetsDirectory() {
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newAsset, setNewAsset] = useState({ name: '', categoryId: '', serialNumber: '', location: '', acquisitionDate: new Date().toISOString().split('T')[0] });
+  const [photoFiles, setPhotoFiles] = useState([]);
+  const [docFiles, setDocFiles] = useState([]);
 
   const { data: assetsResponse, isLoading, error } = useGetAssetsQuery({ pageSize: 100 });
   const { data: categoriesResponse } = useGetCategoriesQuery();
   const [createAsset, { isLoading: isCreating }] = useCreateAssetMutation();
+  const [uploadAttachment, { isLoading: isUploading }] = useUploadAttachmentMutation();
   
   const rawAssets = assetsResponse?.data || [];
   const dbCategories = categoriesResponse?.data || [];
   
   const mappedAssets = useMemo(() => {
-    return rawAssets.map(a => ({
-      id: a.id,
-      tag: a.asset_tag || a.tag || '',
-      name: a.name || '',
-      serial: a.serial_number || '',
-      category: a.category || 'Unknown',
-      status: a.status || 'Available',
-      location: a.location || 'Unknown',
-      department: a.department || 'Unknown'
-    }));
-  }, [rawAssets]);
+    return rawAssets.map(a => {
+      const categoryObj = dbCategories.find(c => c.id === a.category_id);
+      return {
+        id: a.id,
+        tag: a.asset_tag || a.tag || '',
+        name: a.name || '',
+        serial: a.serial_number || '',
+        category: categoryObj ? categoryObj.name : 'Unknown',
+        status: a.status || 'Available',
+        location: a.location || 'Unknown',
+        department: a.department || 'Unknown'
+      };
+    });
+  }, [rawAssets, dbCategories]);
 
   const filteredAssets = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -65,11 +72,27 @@ export default function AssetsDirectory() {
   const handleCreateAsset = async (e) => {
     e.preventDefault();
     try {
-      await createAsset(newAsset).unwrap();
+      const createdAssetResponse = await createAsset(newAsset).unwrap();
+      const assetId = createdAssetResponse.data?.id || createdAssetResponse.id;
+      
+      // Upload attached files if any
+      const allFiles = [...photoFiles, ...docFiles];
+      if (assetId && allFiles.length > 0) {
+        for (const file of allFiles) {
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('entity_type', 'Asset');
+          formData.append('entity_id', assetId);
+          await uploadAttachment(formData).unwrap();
+        }
+      }
+
       setIsModalOpen(false);
       setNewAsset({ name: '', categoryId: '', serialNumber: '', location: '', acquisitionDate: new Date().toISOString().split('T')[0] });
+      setPhotoFiles([]);
+      setDocFiles([]);
     } catch (err) {
-      console.error('Failed to create asset', err);
+      console.error('Failed to create asset or upload attachments', err);
     }
   };
 
@@ -149,8 +172,8 @@ export default function AssetsDirectory() {
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+        <div className="fixed top-14 left-64 right-0 bottom-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto scrollbar-hide">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-bold text-white">Register Asset</h3>
               <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white">
@@ -183,8 +206,23 @@ export default function AssetsDirectory() {
                 <label className="block text-sm text-slate-300 mb-1">Acquisition Date</label>
                 <input required type="date" value={newAsset.acquisitionDate} onChange={e => setNewAsset({...newAsset, acquisitionDate: e.target.value})} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white" />
               </div>
-              <button type="submit" disabled={isCreating} className="w-full bg-emerald-500 hover:bg-emerald-400 text-white rounded-lg py-2.5 font-semibold transition-colors mt-4">
-                {isCreating ? 'Saving...' : 'Save Asset'}
+              <div className="pt-2">
+                <FileUploadDropzone 
+                  onFilesChange={setPhotoFiles} 
+                  maxFiles={1} 
+                  label="Asset Photograph (Max 1)"
+                  acceptedTypes="image/jpeg,image/png"
+                />
+              </div>
+              <div className="pt-2">
+                <FileUploadDropzone 
+                  onFilesChange={setDocFiles} 
+                  maxFiles={2} 
+                  label="Related Documents (Max 2)"
+                />
+              </div>
+              <button type="submit" disabled={isCreating || isUploading} className="w-full bg-emerald-500 hover:bg-emerald-400 text-white rounded-lg py-2.5 font-semibold transition-colors mt-4">
+                {isCreating || isUploading ? 'Saving...' : 'Save Asset'}
               </button>
             </form>
           </div>
