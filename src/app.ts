@@ -72,6 +72,10 @@ export function createApp(): Express {
   app.use('/api/reports', authMiddleware, paginationMiddleware, require('@modules/reports/routes').default);
   app.use('/api/notifications', authMiddleware, require('@modules/notifications/routes').default);
   app.use('/api/activity-logs', authMiddleware, paginationMiddleware, require('@modules/activityLogs/routes').default);
+  app.use('/api/attachments', authMiddleware, require('@modules/attachments/routes').default);
+
+  // Serve static uploads
+  app.use('/uploads', express.static(config.upload.uploadDir));
 
   // ==================== Error Handling ====================
   app.use(notFoundHandler);

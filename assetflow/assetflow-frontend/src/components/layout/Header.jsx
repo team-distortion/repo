@@ -34,7 +34,7 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="h-16 glass-panel border-b border-x-0 border-t-0 border-slate-700 flex items-center justify-between px-6 z-10 relative">
+    <header className="h-14 glass-panel border-b border-x-0 border-t-0 border-slate-700 flex items-center justify-between px-6 z-10 relative">
       <div className="flex items-center gap-2">
         <span className="text-slate-400 text-sm font-medium tracking-wide">ROLE: <span className="text-indigo-400 ml-1">{role || 'Employee'}</span></span>
       </div>

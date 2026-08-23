@@ -6,3 +6,4 @@ export { authMiddleware, requireRole, optionalAuth, generateToken, generateRefre
 export { errorHandler, notFoundHandler } from './errorHandler';
 export { paginationMiddleware, extractPaginationParams, buildPaginationMeta, buildLimitOffset, buildOrderByClause } from './pagination';
 export { requestLogger, logActivity, setActivityLog } from './activityLogging';
+export { upload } from './upload';

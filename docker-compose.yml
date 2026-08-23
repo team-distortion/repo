@@ -7,7 +7,7 @@ services:
       POSTGRES_DB: ${DB_NAME:-assetflow}
       POSTGRES_INITDB_ARGS: "-c log_statement=all"
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - "5433:5432"
     volumes:
       - assetflow_postgres_data:/var/lib/postgresql/data
       - ./src/database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
@@ -22,7 +22,7 @@ services:
   pgadmin:
     image: dpage/pgadmin4:latest
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@assetflow.local
+      PGADMIN_DEFAULT_EMAIL: admin@assetflow.com
       PGADMIN_DEFAULT_PASSWORD: admin
     ports:
       - "5050:80"
