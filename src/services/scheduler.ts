@@ -24,11 +24,11 @@ export async function runOverdueChecks(): Promise<number> {
     const lockResult = await client.query('SELECT pg_try_advisory_xact_lock(1001) as locked');
     const isLocked = lockResult.rows[0]?.locked;
     if (!isLocked) {
-      logger.info('Overdue checks skipped: Advisory lock 1001 is held by another instance');
+      logger.debug('Overdue checks skipped: Advisory lock 1001 is held by another instance');
       return;
     }
 
-    logger.info('Running overdue return checks...');
+    logger.debug('Running overdue return checks...');
 
     // Fetch allocations that are overdue (expected_return_date is in the past, returned_at is null)
     const overdueAllocations = await client.query(`
@@ -117,11 +117,11 @@ export async function runBookingChecks(): Promise<number> {
     const lockResult = await client.query('SELECT pg_try_advisory_xact_lock(1002) as locked');
     const isLocked = lockResult.rows[0]?.locked;
     if (!isLocked) {
-      logger.info('Booking checks skipped: Advisory lock 1002 is held by another instance');
+      logger.debug('Booking checks skipped: Advisory lock 1002 is held by another instance');
       return;
     }
 
-    logger.info('Running booking reminder checks...');
+    logger.debug('Running booking reminder checks...');
 
     // Fetch upcoming bookings starting in the next BOOKING_REMINDER_WINDOW_MINS minutes
     // lower(booking_range) gets the start timestamp of the tstzrange
@@ -172,11 +172,11 @@ export async function runBookingChecks(): Promise<number> {
  */
 export function startScheduler() {
   if (!ENABLE_IN_PROCESS_SCHEDULER) {
-    logger.info('In-process background notification scheduler is disabled by environment configuration');
+    logger.debug('In-process background notification scheduler is disabled by environment configuration');
     return;
   }
 
-  logger.info(`Starting background notification scheduler: Overdue checks every ${OVERDUE_CHECK_INTERVAL_MS}ms, Booking reminders every ${BOOKING_CHECK_INTERVAL_MS}ms`);
+  logger.debug(`Starting background notification scheduler: Overdue checks every ${OVERDUE_CHECK_INTERVAL_MS}ms, Booking reminders every ${BOOKING_CHECK_INTERVAL_MS}ms`);
 
   // Run immediately on startup (wrapped in a delay to avoid blocking server boot)
   setTimeout(() => {
@@ -206,5 +206,5 @@ export function stopScheduler() {
     clearInterval(bookingTimer);
     bookingTimer = null;
   }
-  logger.info('Background notification scheduler stopped');
+  logger.debug('Background notification scheduler stopped');
 }
