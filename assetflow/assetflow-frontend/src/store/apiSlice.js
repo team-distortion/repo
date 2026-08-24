@@ -117,6 +117,20 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ['Transfer', 'Asset', 'Allocation'],
     }),
+    approveTransfer: builder.mutation({
+      query: (id) => ({
+        url: `/transfers/${id}/approve`,
+        method: 'POST',
+      }),
+      invalidatesTags: ['Transfer', 'Asset', 'Allocation'],
+    }),
+    rejectTransfer: builder.mutation({
+      query: (id) => ({
+        url: `/transfers/${id}/reject`,
+        method: 'POST',
+      }),
+      invalidatesTags: ['Transfer'],
+    }),
 
     // Maintenance
     getMaintenanceRequests: builder.query({
@@ -315,6 +329,8 @@ export const {
   useReturnAllocationMutation,
   useGetTransfersQuery,
   useCreateTransferMutation,
+  useApproveTransferMutation,
+  useRejectTransferMutation,
   useGetMaintenanceRequestsQuery,
   useCreateMaintenanceRequestMutation,
   useUpdateMaintenanceRequestMutation,
