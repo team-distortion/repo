@@ -98,6 +98,12 @@ export async function logActivity(
   try {
     await client.query(sql, params);
     logger.debug('Activity logged', { action, targetEntity, targetId });
+
+    // Automatically trigger notification routing for this activity
+    const { NotificationService } = require('../services/notificationService');
+    NotificationService.handleActivity(action, targetEntity, targetId, userId, metadata)
+      .catch((err: any) => logger.error('Failed to route notification for activity', err, { action, targetId }));
+      
   } catch (error) {
     logger.error('Failed to log activity', error, {
       action,

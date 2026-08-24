@@ -231,6 +231,35 @@ export const apiSlice = createApi({
       }),
       providesTags: ['Notification'],
     }),
+    markNotificationAsRead: builder.mutation({
+      query: (id) => ({
+        url: `/notifications/${id}/read`,
+        method: 'PUT',
+      }),
+      invalidatesTags: ['Notification'],
+    }),
+    markAllNotificationsAsRead: builder.mutation({
+      query: () => ({
+        url: '/notifications/read-all',
+        method: 'PUT',
+      }),
+      invalidatesTags: ['Notification'],
+    }),
+    deleteNotification: builder.mutation({
+      query: (id) => ({
+        url: `/notifications/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Notification'],
+    }),
+    clearNotifications: builder.mutation({
+      query: (params) => ({
+        url: '/notifications',
+        method: 'DELETE',
+        params,
+      }),
+      invalidatesTags: ['Notification'],
+    }),
 
     // Audits
     getAudits: builder.query({
@@ -301,6 +330,10 @@ export const {
   useCreateCategoryMutation,
   useGetReportsQuery,
   useGetNotificationsQuery,
+  useMarkNotificationAsReadMutation,
+  useMarkAllNotificationsAsReadMutation,
+  useDeleteNotificationMutation,
+  useClearNotificationsMutation,
   useGetAuditsQuery,
   useGetAuditDetailsQuery,
   useCloseAuditMutation,

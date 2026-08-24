@@ -1,11 +1,13 @@
 /**
  * AssetFlow Backend - Main Entry Point
+ * Triggers Nodemon reload to apply .env DB_PORT change.
  */
 
 import { config, validateConfig } from '@config';
 import { initializeDatabase, closeDatabase } from '@utils/database';
 import logger from '@utils/logger';
 import { createApp } from './app';
+import { startScheduler, stopScheduler } from './services/scheduler';
 
 /**
  * Start the application
@@ -18,6 +20,9 @@ async function start(): Promise<void> {
     // Initialize database
     logger.info('Initializing database connection...');
     initializeDatabase();
+
+    // Start background notification scheduler
+    startScheduler();
 
     // Create Express app
     const app = createApp();
@@ -38,6 +43,7 @@ async function start(): Promise<void> {
       logger.info('SIGTERM signal received: closing HTTP server');
       server.close(async () => {
         logger.info('HTTP server closed');
+        stopScheduler();
         await closeDatabase();
         process.exit(0);
       });
@@ -47,6 +53,7 @@ async function start(): Promise<void> {
       logger.info('SIGINT signal received: closing HTTP server');
       server.close(async () => {
         logger.info('HTTP server closed');
+        stopScheduler();
         await closeDatabase();
         process.exit(0);
       });

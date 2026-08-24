@@ -5,6 +5,7 @@
 
 // ==================== User & Authentication ====================
 
+
 export type UserRole = 'Admin' | 'AssetManager' | 'DepartmentHead' | 'Employee';
 
 export interface User {
@@ -282,13 +283,21 @@ export interface Discrepancy {
 export type NotificationType =
   | 'AssetAssigned'
   | 'AssetReturned'
+  | 'AllocationReturnRequested'
+  | 'MaintenanceRequested'
   | 'MaintenanceApproved'
   | 'MaintenanceRejected'
+  | 'MaintenanceAssigned'
+  | 'MaintenanceResolved'
+  | 'BookingCreated'
   | 'BookingConfirmed'
   | 'BookingCancelled'
   | 'BookingReminder'
+  | 'TransferRequested'
   | 'TransferApproved'
   | 'TransferRejected'
+  | 'AuditCycleCreated'
+  | 'AuditCycleClosed'
   | 'OverdueReturnAlert'
   | 'AuditDiscrepancyFlagged'
   | 'Announcement';
