@@ -1,17 +1,43 @@
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { Package, Calendar, AlertCircle, Wrench, ArrowRightLeft, Clock, Activity, Plus } from 'lucide-react';
-import { useGetDashboardStatsQuery } from '../store/apiSlice';
+import { useGetDashboardStatsQuery, useGetTransfersQuery, useGetUsersQuery, useGetAssetsQuery, useApproveTransferMutation, useRejectTransferMutation } from '../store/apiSlice';
 
 export default function Dashboard() {
   const { role } = useSelector(state => state.auth);
   const navigate = useNavigate();
   const { data: statsResponse, isLoading, error } = useGetDashboardStatsQuery();
+  const { data: transfersRes } = useGetTransfersQuery({ pageSize: 100 });
+  const { data: usersRes } = useGetUsersQuery();
+  const { data: assetsRes } = useGetAssetsQuery({ pageSize: 100 });
+  const [approveTransfer] = useApproveTransferMutation();
+  const [rejectTransfer] = useRejectTransferMutation();
 
   if (isLoading) return <div className="text-white p-4">Loading dashboard...</div>;
   if (error) return <div className="text-red-500 p-4">Failed to load dashboard stats.</div>;
 
   const stats = statsResponse?.data || {};
+  const transfers = transfersRes?.data || [];
+  const users = usersRes?.data || [];
+  const assets = assetsRes?.data || [];
+  
+  const pendingTransfersList = transfers.filter(t => t.status === 'Requested');
+
+  const handleApprove = async (id) => {
+    try {
+      await approveTransfer(id).unwrap();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleReject = async (id) => {
+    try {
+      await rejectTransfer(id).unwrap();
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 max-w-5xl">
@@ -62,17 +88,58 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="pt-6">
-        <h3 className="text-xl font-semibold text-white mb-4">Recent Activity</h3>
-        <div className="space-y-3">
-          {stats.recentActivity?.length > 0 ? (
-            stats.recentActivity.map((activity, index) => (
-              <ActivityItem key={index} text={activity} />
-            ))
-          ) : (
-            <p className="text-slate-500 text-sm">No recent activity.</p>
-          )}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-6">
+        <div>
+          <h3 className="text-xl font-semibold text-white mb-4">Recent Activity</h3>
+          <div className="space-y-3 glass-panel p-6 rounded-2xl border border-slate-700/60">
+            {stats.recentActivity?.length > 0 ? (
+              stats.recentActivity.map((activity, index) => (
+                <ActivityItem key={index} text={activity} />
+              ))
+            ) : (
+              <p className="text-slate-500 text-sm">No recent activity.</p>
+            )}
+          </div>
         </div>
+
+        {['Admin', 'AssetManager'].includes(role) && (
+          <div>
+            <h3 className="text-xl font-semibold text-white mb-4">Pending Approvals</h3>
+            <div className="space-y-3 glass-panel p-6 rounded-2xl border border-slate-700/60 h-[300px] overflow-y-auto custom-scrollbar">
+              {pendingTransfersList.length > 0 ? (
+                pendingTransfersList.map((tr) => {
+                  const asset = assets.find(a => a.id === tr.asset_id) || {};
+                  const requestedBy = users.find(u => u.id === tr.requested_by)?.name || 'Unknown';
+                  const requestedTo = users.find(u => u.id === tr.requested_to_id)?.name || 'Unknown';
+                  return (
+                    <div key={tr.id} className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <p className="text-white font-medium">{asset.name || 'Unknown Asset'}</p>
+                          <p className="text-slate-400 text-sm">
+                            {requestedBy} → {requestedTo}
+                          </p>
+                        </div>
+                        <span className="text-xs font-medium text-amber-400 bg-amber-400/10 px-2 py-1 rounded">Pending</span>
+                      </div>
+                      {tr.reason && <p className="text-slate-500 text-sm mb-3">"{tr.reason}"</p>}
+                      <div className="flex gap-2 mt-3">
+                        <button onClick={() => handleApprove(tr.id)} className="flex-1 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 py-1.5 rounded-lg text-sm font-medium transition-colors">
+                          Approve
+                        </button>
+                        <button onClick={() => handleReject(tr.id)} className="flex-1 bg-red-500/20 text-red-400 hover:bg-red-500/30 py-1.5 rounded-lg text-sm font-medium transition-colors">
+                          Reject
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <p className="text-slate-500 text-sm">No pending transfer requests.</p>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Plus, Edit2, Search, X } from 'lucide-react';
 import { api } from '../../utils/api';
 
@@ -311,7 +312,7 @@ export default function CategoriesTab() {
       </div>
 
       {/* Add Modal */}
-      {isAddModalOpen && (
+      {isAddModalOpen && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="glass-panel w-full max-w-lg rounded-3xl p-8 border border-slate-700/80 relative shadow-2xl bg-slate-900/95 max-h-[90vh] overflow-y-auto">
             <button
@@ -409,11 +410,12 @@ export default function CategoriesTab() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Edit Modal */}
-      {isEditModalOpen && (
+      {isEditModalOpen && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="glass-panel w-full max-w-lg rounded-3xl p-8 border border-slate-700/80 relative shadow-2xl bg-slate-900/95 max-h-[90vh] overflow-y-auto">
             <button
@@ -511,7 +513,8 @@ export default function CategoriesTab() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
     </div>
