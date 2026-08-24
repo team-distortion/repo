@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { ChevronRight } from 'lucide-react';
 import { api } from '../../utils/api';
+import Badge from '../../components/ui/Badge';
 
 export default function DepartmentsTab() {
   const [departments, setDepartments] = useState([]);
@@ -13,7 +13,6 @@ export default function DepartmentsTab() {
       try {
         setLoading(true);
         setError(null);
-        // Fetch departments and users (for mapping head names)
         const [deptsRes, usersRes] = await Promise.all([
           api.get('/api/departments'),
           api.get('/api/users'),
@@ -31,85 +30,69 @@ export default function DepartmentsTab() {
   }, []);
 
   const getUserName = (userId) => {
-    if (!userId) return '--';
+    if (!userId) return '—';
     const user = users.find((u) => u.id === userId || u.userId === userId);
-    return user ? user.name : '--';
+    return user ? user.name : '—';
   };
 
   const getParentDeptName = (parentId) => {
-    if (!parentId) return '--';
+    if (!parentId) return '—';
     const dept = departments.find((d) => d.id === parentId);
-    return dept ? dept.name : '--';
+    return dept ? dept.name : '—';
   };
 
   if (loading) {
     return (
-      <div className="p-20 text-center text-slate-400">
-        <div className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-emerald-500 rounded-full mb-4" role="status" aria-label="loading"></div>
-        <p>Loading departments...</p>
+      <div className="p-16 text-center text-[#98989D] text-[14px]">
+        Loading department directory...
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-12 text-center">
-        <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-2xl max-w-md mx-auto">
+      <div className="p-8 text-center">
+        <div className="bg-[#330C0A] border border-[#FF453A]/40 text-[#FF6961] p-4 rounded-xl max-w-md mx-auto text-[14px]">
           <p className="font-semibold">Error Loading Departments</p>
-          <p className="text-sm mt-1">{error}</p>
+          <p className="text-[13px] mt-1">{error}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="animate-in slide-in-from-bottom-4 duration-500">
+    <div>
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse whitespace-nowrap">
           <thead>
-            <tr className="border-b border-slate-700/60 bg-slate-900/30">
-              <th className="py-5 px-8 font-semibold text-slate-400 uppercase tracking-wider text-[11px] w-1/4">Department Name</th>
-              <th className="py-5 px-8 font-semibold text-slate-400 uppercase tracking-wider text-[11px] w-1/4">Department Head</th>
-              <th className="py-5 px-8 font-semibold text-slate-400 uppercase tracking-wider text-[11px] w-1/4">Parent Dept</th>
-              <th className="py-5 px-8 font-semibold text-slate-400 uppercase tracking-wider text-[11px] w-1/6">Status</th>
-              <th className="py-5 px-8 font-semibold text-slate-400 uppercase tracking-wider text-[11px] text-right w-1/12">Actions</th>
+            <tr className="h-11 border-b border-[#38383A] bg-[#202022]">
+              <th className="px-4 text-[12px] font-medium text-[#98989D] uppercase tracking-wider">Department Name</th>
+              <th className="px-4 text-[12px] font-medium text-[#98989D] uppercase tracking-wider">Department Head</th>
+              <th className="px-4 text-[12px] font-medium text-[#98989D] uppercase tracking-wider">Parent Department</th>
+              <th className="px-4 text-[12px] font-medium text-[#98989D] uppercase tracking-wider">Status</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-700/40">
+          <tbody className="divide-y divide-[#38383A]">
             {departments.map((dept) => (
-              <tr key={dept.id} className="hover:bg-slate-700/30 transition-colors group">
-                <td className="py-5 px-8">
-                  <span className="font-semibold text-slate-200 tracking-wide">{dept.name}</span>
+              <tr key={dept.id} className="h-14 hover:bg-[#202022] transition-colors">
+                <td className="px-4 text-[14px] font-medium text-[#F5F5F7]">
+                  {dept.name}
                 </td>
-                <td className="py-5 px-8">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-xs font-bold text-white shadow-md">
-                      {getUserName(dept.headUserId).charAt(0).toUpperCase()}
-                    </div>
-                    <span className="text-slate-300 capitalize text-sm">{getUserName(dept.headUserId)}</span>
-                  </div>
+                <td className="px-4 text-[14px] text-[#98989D]">
+                  {getUserName(dept.headUserId)}
                 </td>
-                <td className="py-5 px-8 text-slate-400 text-sm">{getParentDeptName(dept.parentId)}</td>
-                <td className="py-5 px-8">
-                  <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-[11px] uppercase tracking-wider font-bold border ${
-                    dept.status === 'Active' 
-                      ? 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10' 
-                      : 'border-slate-500/30 text-slate-400 bg-slate-500/10'
-                  }`}>
-                    {dept.status}
-                  </span>
+                <td className="px-4 text-[14px] text-[#98989D]">
+                  {getParentDeptName(dept.parentId)}
                 </td>
-                <td className="py-5 px-8 text-right">
-                  <button className="text-slate-500 hover:text-white transition-colors p-2 hover:bg-slate-600/50 rounded-xl opacity-0 group-hover:opacity-100">
-                    <ChevronRight className="w-5 h-5" />
-                  </button>
+                <td className="px-4">
+                  <Badge status={dept.status}>{dept.status}</Badge>
                 </td>
               </tr>
             ))}
             {departments.length === 0 && (
               <tr>
-                <td colSpan={5} className="py-12 px-8 text-center text-slate-500">
-                  No departments found.
+                <td colSpan={4} className="h-32 text-center text-[#6E6E73] text-[14px]">
+                  No departments recorded in the system.
                 </td>
               </tr>
             )}
@@ -117,9 +100,9 @@ export default function DepartmentsTab() {
         </table>
       </div>
       
-      <div className="p-6 bg-slate-900/30 border-t border-slate-700/60 text-slate-400 text-sm flex items-center gap-3">
-        <div className="w-2 h-2 rounded-full bg-emerald-500/50 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
-        <p>Editing a department here automatically updates the picklist in the Allocation & Transfer screen.</p>
+      <div className="p-4 bg-[#202022] border-t border-[#38383A] text-[12px] text-[#98989D] flex items-center gap-2">
+        <div className="w-1.5 h-1.5 rounded-full bg-[#0A84FF]" />
+        <p>Department structures automatically populate routing in the Allocation and Transfer modules.</p>
       </div>
     </div>
   );

@@ -1,17 +1,21 @@
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { loginSuccess } from '../../store/authSlice';
 import { useLoginMutation } from '../../store/apiSlice';
 import { Package } from 'lucide-react';
+import Button from '../../components/ui/Button';
+import Input from '../../components/ui/Input';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [login, { isLoading, error: loginError }] = useLoginMutation();
+  const successMessage = location.state?.message;
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -28,64 +32,80 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-900 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-slate-800 via-slate-900 to-black p-4">
-      <div className="glass-panel p-10 rounded-3xl w-full max-w-md shadow-2xl relative overflow-hidden">
-        {/* Decorative elements */}
-        <div className="absolute -top-20 -right-20 w-40 h-40 bg-blue-500 rounded-full blur-3xl opacity-20"></div>
-        <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-indigo-500 rounded-full blur-3xl opacity-20"></div>
-
-        <div className="flex flex-col items-center mb-8 relative z-10">
-          <div className="w-16 h-16 bg-blue-500/10 border border-blue-500/20 rounded-full flex items-center justify-center mb-4">
-            <Package className="w-8 h-8 text-blue-400" />
+    <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg)] p-4 text-[var(--color-text)]">
+      <div className="w-full max-w-[420px] bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[20px] p-8 shadow-surface-lg space-y-6 animate-in fade-in zoom-in-95 duration-200">
+        
+        {/* Brand Header */}
+        <div className="flex flex-col items-center text-center space-y-2">
+          <div className="w-12 h-12 rounded-xl bg-[var(--color-surface-2)] border border-[var(--color-border)] flex items-center justify-center text-[var(--color-primary)] mb-1">
+            <Package className="w-6 h-6" strokeWidth={1.75} />
           </div>
-          <h2 className="text-3xl font-bold text-white">AssetFlow</h2>
-          <p className="text-slate-400 mt-2 text-center text-sm">Enterprise Asset & Resource Management</p>
+          <h1 className="text-[28px] font-semibold leading-[1.2] text-[var(--color-text)] tracking-tight">
+            AssetFlow
+          </h1>
+          <p className="text-[14px] text-[var(--color-text-secondary)]">
+            Sign in to manage organizational assets
+          </p>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-6 relative z-10">
-          {loginError && (
-            <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3.5 rounded-xl text-sm font-medium">
-              {loginError.data?.error?.message || loginError.data?.message || 'Login failed'}
-            </div>
-          )}
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">Email Address</label>
-            <input 
-              type="email" 
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all placeholder:text-slate-600"
-              placeholder="e.g. admin@example.com"
-            />
+        {successMessage && (
+          <div className="p-3 bg-[var(--color-primary-tint)] border border-[var(--color-primary)]/40 text-[var(--color-primary)] rounded-lg text-[13px]">
+            {successMessage}
           </div>
-          
-          <div>
-            <div className="flex justify-between mb-2">
-              <label className="block text-sm font-medium text-slate-300">Password</label>
-              <Link to="/reset-password" className="text-sm text-blue-400 hover:text-blue-300 transition-colors">Forgot password?</Link>
+        )}
+
+        {loginError && (
+          <div className="p-3 bg-[var(--color-error-tint)] border border-[var(--color-error)]/40 text-[var(--color-error)] rounded-lg text-[13px]">
+            {loginError.data?.error?.message || loginError.data?.message || 'Invalid email or password.'}
+          </div>
+        )}
+
+        <form onSubmit={handleLogin} className="space-y-4">
+          <Input
+            id="login-email"
+            label="Email Address"
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="admin@assetflow.com"
+          />
+
+          <div className="space-y-1">
+            <div className="flex justify-between items-center">
+              <label htmlFor="login-password" className="block text-[13px] font-medium text-[var(--color-text-secondary)]">
+                Password
+              </label>
+              <Link to="/reset-password" className="text-[12px] text-[var(--color-primary)] hover:underline">
+                Forgot password?
+              </Link>
             </div>
-            <input 
-              type="password" 
+            <input
+              id="login-password"
+              type="password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all placeholder:text-slate-600"
               placeholder="••••••••"
+              className="w-full h-10 px-3 rounded-lg text-[14px] text-[var(--color-text)] placeholder-[var(--color-text-tertiary)] bg-[var(--color-surface-2)] border border-[var(--color-border-strong)] focus:outline-none focus:border-[var(--color-primary)] focus:ring-[3px] focus:ring-[var(--color-primary)]/25 transition-colors"
             />
           </div>
 
-          <button 
-            type="submit" 
+          <Button
+            type="submit"
+            variant="primary"
             disabled={isLoading}
-            className="w-full bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(37,99,235,0.3)] hover:shadow-[0_0_25px_rgba(37,99,235,0.5)] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full mt-2"
           >
             {isLoading ? 'Signing In...' : 'Sign In'}
-          </button>
+          </Button>
         </form>
 
-        <p className="mt-8 text-center text-sm text-slate-400 relative z-10">
-          Don't have an account? <Link to="/signup" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">Create an Employee Account</Link>
+        <p className="text-center text-[13px] text-[var(--color-text-secondary)] pt-2 border-t border-[var(--color-border)]">
+          Don't have an account?{' '}
+          <Link to="/signup" className="text-[var(--color-primary)] hover:underline font-medium">
+            Create Employee Account
+          </Link>
         </p>
       </div>
     </div>

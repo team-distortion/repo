@@ -1,106 +1,172 @@
-import React from 'react';
-import { useGetBookingsQuery, useCreateBookingMutation } from '../../store/apiSlice';
+import { useState } from 'react';
+import { Calendar, Plus } from 'lucide-react';
+import { 
+  useGetBookingsQuery, 
+  useCreateBookingMutation,
+  useGetAssetsQuery 
+} from '../../store/apiSlice';
+import Button from '../../components/ui/Button';
+import Card from '../../components/ui/Card';
+import Modal from '../../components/ui/Modal';
+import Input from '../../components/ui/Input';
 
-const timeline = ['9:00', '10:00', '11:00', '12:00', '1:00'];
+const timeline = ['09:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM'];
 
 export default function ResourceBooking() {
-  const { data, isLoading, error } = useGetBookingsQuery();
+  const { data: bookingsData, isLoading, error } = useGetBookingsQuery();
+  const { data: assetsData } = useGetAssetsQuery({ pageSize: 100 });
   const [createBooking, { isLoading: isBooking }] = useCreateBookingMutation();
 
-  const bookings = data?.data || [];
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newBooking, setNewBooking] = useState({
+    assetId: '',
+    startTime: '',
+    endTime: '',
+    purpose: '',
+  });
 
-  const handleBookSlot = async () => {
+  const bookings = bookingsData?.data || [];
+  const sharedAssets = (assetsData?.data || []).filter(a => a.is_shared || a.status === 'Available');
+
+  const handleCreateBooking = async (e) => {
+    e.preventDefault();
     try {
-      // Basic implementation for booking a slot
       await createBooking({
-        assetId: '123', // Replace with real asset selection in full implementation
-        startTime: new Date().toISOString(),
-        endTime: new Date(Date.now() + 3600000).toISOString(),
-        purpose: 'Meeting',
+        assetId: newBooking.assetId || sharedAssets[0]?.id,
+        startTime: new Date(newBooking.startTime).toISOString(),
+        endTime: new Date(newBooking.endTime).toISOString(),
+        purpose: newBooking.purpose,
       }).unwrap();
+      setIsModalOpen(false);
+      setNewBooking({ assetId: '', startTime: '', endTime: '', purpose: '' });
     } catch (err) {
-      console.error('Failed to book:', err);
+      console.error('Failed to book resource:', err);
     }
   };
 
-  if (isLoading) {
-    return <div className="text-white p-6">Loading bookings...</div>;
-  }
-
-  if (error) {
-    return <div className="text-red-400 p-6">Failed to load bookings.</div>;
-  }
+  if (isLoading) return <div className="text-[#98989D] text-[14px] p-8">Loading bookings...</div>;
+  if (error) return <div className="text-[#FF6961] text-[14px] p-8">Failed to load bookings.</div>;
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 animate-in fade-in duration-500">
-      <div className="space-y-1">
-        <p className="text-sm text-slate-400">Screen 6 Resource booking</p>
-        <h2 className="text-3xl font-bold text-white tracking-tight">Resource Booking</h2>
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-[36px] font-semibold leading-[1.15] text-[#F5F5F7] tracking-tight">
+            Resource Booking
+          </h1>
+          <p className="text-[14px] text-[#98989D] mt-1">
+            Reserve conference rooms, shared projectors, and company equipment
+          </p>
+        </div>
+
+        <Button onClick={() => setIsModalOpen(true)} variant="primary">
+          <Plus className="w-4 h-4" strokeWidth={1.75} /> Book a Slot
+        </Button>
       </div>
 
-      <div className="glass-panel rounded-[2.5rem] border border-slate-700/70 shadow-2xl overflow-hidden relative bg-slate-800/30">
-        <div className="p-6 pb-4 border-b border-slate-700/70">
-          <div className="flex items-center gap-3">
-            <h3 className="text-2xl font-bold text-white">AssetFlow</h3>
+      {/* Main Schedule View Card (§8 Cards) */}
+      <Card className="space-y-6">
+        <div className="flex items-center justify-between pb-4 border-b border-[#38383A]">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-5 h-5 text-[#0A84FF]" strokeWidth={1.75} />
+            <h2 className="text-[18px] font-semibold text-[#F5F5F7] tracking-tight">
+              Daily Schedule View
+            </h2>
           </div>
         </div>
 
-        <section className="p-6 lg:p-8 relative">
-          <div className="space-y-2 max-w-4xl">
-            <label className="block text-sm text-slate-400 font-medium">Resource</label>
-            <div className="rounded-lg border border-slate-500/70 bg-transparent px-4 py-2.5 text-white text-[15px] shadow-[0_0_0_1px_rgba(0,0,0,0.08)_inset]">
-              Conference room B2 - Tue, 7 Jul
-            </div>
-          </div>
+        {/* Timeline Grid */}
+        <div className="space-y-3">
+          {timeline.map((time, idx) => {
+            const activeBooking = bookings[idx % Math.max(1, bookings.length)];
+            const hasBooking = bookings.length > 0 && idx < bookings.length;
 
-          <div className="mt-8 grid grid-cols-[64px_minmax(0,1fr)] gap-3 max-w-4xl">
-            <div className="pt-3 space-y-8.5 text-slate-200 text-[15px]">
-              {timeline.map((time) => (
-                <div key={time}>{time}</div>
-              ))}
-            </div>
+            return (
+              <div key={time} className="grid grid-cols-[100px_1fr] items-center gap-4 py-2 border-b border-[#2C2C2E] last:border-b-0">
+                <span className="text-[13px] font-mono text-[#98989D]">{time}</span>
+                {hasBooking && activeBooking ? (
+                  <div className="h-10 px-4 rounded-lg bg-[#0A2A4D] border border-[#0A84FF]/50 flex items-center justify-between text-[#F5F5F7]">
+                    <span className="text-[14px] font-medium truncate">
+                      {activeBooking.purpose || activeBooking.name || 'Team Reservation'}
+                    </span>
+                    <span className="text-[12px] text-[#409CFF]">Booked</span>
+                  </div>
+                ) : (
+                  <div className="h-10 px-4 rounded-lg border border-dashed border-[#38383A] flex items-center text-[13px] text-[#6E6E73]">
+                    Available for reservation
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </Card>
 
-            <div className="relative h-65 mt-1">
-              {bookings.length === 0 ? (
-                <div className="text-slate-400 py-4">No bookings for this resource yet.</div>
-              ) : (
-                bookings.map((booking, index) => (
-                  <BookingCard
-                    key={booking.id || index}
-                    top={`${index * 60}px`} // Simple positioning logic based on index for demonstration
-                    height="58px"
-                    label={booking.purpose || booking.title || 'Reserved'}
-                    tone="bg-[#194f78] text-slate-100 border-slate-300/70"
-                  />
-                ))
-              )}
-            </div>
-          </div>
-
-          <div className="mt-10 max-w-4xl pl-16">
-            <button 
-              onClick={handleBookSlot}
-              disabled={isBooking}
-              className="bg-[#0e3b14] border border-emerald-200/40 text-slate-100 px-16 py-3 rounded-lg text-[15px] font-medium shadow-[inset_0_0_0_1px_rgba(255,255,255,0.05)] disabled:opacity-50"
+      {/* Book Slot Modal (§13 Modals) */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Reserve Resource"
+        size="md"
+      >
+        <form onSubmit={handleCreateBooking} className="space-y-4">
+          <div className="space-y-1">
+            <label className="block text-[13px] font-medium text-[#98989D]">
+              Resource
+            </label>
+            <select
+              required
+              value={newBooking.assetId}
+              onChange={e => setNewBooking({ ...newBooking, assetId: e.target.value })}
+              className="w-full h-10 px-3 rounded-lg text-[14px] text-[#F5F5F7] bg-[#202022] border border-[#48484A] focus:outline-none focus:border-[#0A84FF] focus:ring-[3px] focus:ring-[#0A84FF]/25 cursor-pointer"
             >
-              {isBooking ? 'Booking...' : 'Book a slot'}
-            </button>
+              <option value="">Select Resource...</option>
+              {sharedAssets.map(a => (
+                <option key={a.id} value={a.id}>
+                  {a.name} ({a.asset_tag || a.tag || 'Shared'})
+                </option>
+              ))}
+            </select>
           </div>
-        </section>
-      </div>
-    </div>
-  );
-}
 
-function BookingCard({ label, tone, top, height, dashed = false, muted = false }) {
-  return (
-    <div
-      className={`absolute left-0 right-0 rounded-xl border px-4 py-2 ${tone} ${muted ? 'bg-transparent' : ''}`}
-      style={{ top, height }}
-    >
-      <div className={`text-[15px] leading-tight ${dashed ? 'border-t border-dashed border-red-300/80 pt-1 mt-1' : ''}`}>
-        {label}
-      </div>
+          <Input
+            id="start-time"
+            label="Start Date & Time"
+            type="datetime-local"
+            required
+            value={newBooking.startTime}
+            onChange={e => setNewBooking({ ...newBooking, startTime: e.target.value })}
+          />
+
+          <Input
+            id="end-time"
+            label="End Date & Time"
+            type="datetime-local"
+            required
+            value={newBooking.endTime}
+            onChange={e => setNewBooking({ ...newBooking, endTime: e.target.value })}
+          />
+
+          <Input
+            id="booking-purpose"
+            label="Purpose"
+            required
+            placeholder="e.g. Client presentation, Sprint planning"
+            value={newBooking.purpose}
+            onChange={e => setNewBooking({ ...newBooking, purpose: e.target.value })}
+          />
+
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#38383A]">
+            <Button variant="ghost" onClick={() => setIsModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="primary" disabled={isBooking}>
+              {isBooking ? 'Reserving...' : 'Confirm Reservation'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

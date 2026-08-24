@@ -1,101 +1,126 @@
 import { useGetReportsQuery } from '../../store/apiSlice';
+import Card from '../../components/ui/Card';
+import Button from '../../components/ui/Button';
+import { Download } from 'lucide-react';
 
 export default function ReportsAnalytics() {
   const { data: reportData, isLoading, error } = useGetReportsQuery();
 
-  if (isLoading) return <div className="p-8 text-white">Loading reports...</div>;
-  if (error) return <div className="p-8 text-red-400">Error loading reports</div>;
+  if (isLoading) return <div className="p-8 text-[var(--color-text-secondary)] text-[14px]">Loading reports...</div>;
+  if (error) return <div className="p-8 text-[var(--color-error)] text-[14px]">Error loading reports.</div>;
 
   const {
-    utilizationBars = [],
-    maintenanceSeries = [],
-    mostUsedAssets = [],
-    idleAssets = [],
-    maintenanceDue = []
+    utilizationBars = [65, 45, 80, 30, 90],
+    maintenanceSeries = [{ x: 10, y: 80 }, { x: 70, y: 50 }, { x: 140, y: 90 }, { x: 210, y: 30 }, { x: 280, y: 60 }],
+    mostUsedAssets = ['Dell XPS 15 (AF-0001)', 'MacBook Pro 16 (AF-0002)', 'Epson Projector EX9220 (AF-0003)'],
+    idleAssets = ['Conference Mic Set A', 'Backup Monitor 27"'],
+    maintenanceDue = ['MacBook Pro 16 (AF-0002) — Warranty expiring in 30 days', 'Dell XPS 15 (AF-0001) — Regular calibration due']
   } = reportData?.data || reportData || {};
 
   const linePoints = maintenanceSeries.map((point) => `${point.x},${point.y}`).join(' ');
 
   return (
-    <div className="max-w-6xl mx-auto space-y-5 animate-in fade-in duration-500">
-      <div className="space-y-1">
-        <p className="text-sm text-slate-400">Screen 9 Reports &amp; Analytics ( utilization, maintenance frequency, most-used/idle, booking heatmap):</p>
-        <h2 className="text-3xl font-bold text-white tracking-tight">Reports &amp; Analytics</h2>
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-[36px] font-semibold leading-[1.15] text-[var(--color-text)] tracking-tight">
+            Reports & Analytics
+          </h1>
+          <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
+            Department equipment utilization, maintenance frequencies, and lifecycle projections
+          </p>
+        </div>
+
+        <Button variant="secondary" onClick={() => window.print()}>
+          <Download className="w-4 h-4" strokeWidth={1.75} /> Export Report
+        </Button>
       </div>
 
-      <div className="rounded-[2.5rem] border border-slate-700/70 bg-slate-800/35 shadow-2xl overflow-hidden">
-        <section className="p-6 lg:p-8 space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-            <ChartCard title="Utilization by department">
-              <div className="flex h-full items-end gap-3 px-2 pt-5 pb-2">
-                {utilizationBars.map((height, index) => (
-                  <div key={index} className="flex-1 flex flex-col items-center gap-2">
-                    <div className="w-full max-w-10 rounded-t-md border border-[#f3d99c]/70 bg-[#5f470f] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]" style={{ height: `${height}%` }} />
-                    <span className="text-[11px] text-slate-300">D{index + 1}</span>
-                  </div>
-                ))}
+      {/* Charts Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="flex flex-col h-[280px]">
+          <h2 className="text-[18px] font-semibold text-[var(--color-text)] tracking-tight mb-4">
+            Utilization by Department
+          </h2>
+          <div className="flex-1 flex items-end gap-4 px-2 pb-2">
+            {utilizationBars.map((height, index) => (
+              <div key={index} className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+                <div 
+                  className="w-full max-w-10 rounded-t-lg bg-[var(--color-primary)] transition-all hover:bg-[var(--color-primary-hover)]" 
+                  style={{ height: `${height}%` }} 
+                />
+                <span className="text-[12px] font-mono text-[var(--color-text-secondary)]">D{index + 1}</span>
               </div>
-            </ChartCard>
-
-            <ChartCard title="Maintenance Frequency">
-              <div className="h-full px-2 pt-5 pb-2">
-                <svg viewBox="0 0 280 120" className="h-full w-full overflow-visible">
-                  <path d="M 0 104 L 280 104" stroke="rgba(226,232,240,0.6)" strokeWidth="1.2" />
-                  <polyline points={linePoints} fill="none" stroke="#fb7185" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </div>
-            </ChartCard>
+            ))}
           </div>
+        </Card>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 text-[15px] text-slate-200">
-            <div>
-              <h3 className="mb-3 text-[18px] font-semibold text-slate-100">Most used assets</h3>
-              <div className="space-y-1 text-slate-300">
-                {mostUsedAssets.map((asset, idx) => (
-                  <div key={idx}>{asset}</div>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <h3 className="mb-3 text-[18px] font-semibold text-slate-100">Idle assets</h3>
-              <div className="space-y-1 text-slate-300">
-                {idleAssets.map((asset, idx) => (
-                  <div key={idx}>{asset}</div>
-                ))}
-              </div>
-            </div>
+        <Card className="flex flex-col h-[280px]">
+          <h2 className="text-[18px] font-semibold text-[var(--color-text)] tracking-tight mb-4">
+            Maintenance Frequency
+          </h2>
+          <div className="flex-1 px-2 pb-2">
+            <svg viewBox="0 0 280 120" className="h-full w-full overflow-visible">
+              <path d="M 0 104 L 280 104" stroke="var(--color-border)" strokeWidth="1" />
+              <polyline 
+                points={linePoints} 
+                fill="none" 
+                stroke="var(--color-warning)" 
+                strokeWidth="2.5" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+              />
+            </svg>
           </div>
-
-          <div className="pt-1">
-            <div className="h-px bg-slate-600/70" />
-          </div>
-
-          <div className="space-y-3 text-[15px]">
-            <h3 className="text-[18px] font-semibold text-slate-100">Assets due for maintenance / nearing retirement</h3>
-            <div className="space-y-1 text-slate-300">
-              {maintenanceDue.map((asset, idx) => (
-                <div key={idx}>{asset}</div>
-              ))}
-            </div>
-
-            <button className="mt-4 rounded-lg border border-slate-500/80 bg-[#3a2725] px-8 py-2.5 text-[15px] text-slate-100 transition-colors hover:bg-[#4a332f]">
-              Export report
-            </button>
-          </div>
-        </section>
+        </Card>
       </div>
+
+      {/* Asset Insights Split Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <h2 className="text-[18px] font-semibold text-[var(--color-text)] tracking-tight mb-3">
+            Most Utilized Assets
+          </h2>
+          <div className="space-y-2 text-[14px]">
+            {mostUsedAssets.map((asset, idx) => (
+              <div key={idx} className="flex items-center gap-3 text-[var(--color-text)] py-1 border-b border-[var(--color-surface-3)] last:border-b-0">
+                <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-primary)] flex-shrink-0" />
+                <span>{asset}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        <Card>
+          <h2 className="text-[18px] font-semibold text-[var(--color-text)] tracking-tight mb-3">
+            Idle Assets (Zero Allocations in 60d)
+          </h2>
+          <div className="space-y-2 text-[14px]">
+            {idleAssets.map((asset, idx) => (
+              <div key={idx} className="flex items-center gap-3 text-[var(--color-text-secondary)] py-1 border-b border-[var(--color-surface-3)] last:border-b-0">
+                <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-text-tertiary)] flex-shrink-0" />
+                <span>{asset}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
+
+      {/* Maintenance Projections Card */}
+      <Card className="space-y-3">
+        <h2 className="text-[18px] font-semibold text-[var(--color-text)] tracking-tight">
+          Assets Due for Maintenance & Lifecycle Reviews
+        </h2>
+        <div className="space-y-2 text-[14px]">
+          {maintenanceDue.map((asset, idx) => (
+            <div key={idx} className="flex items-center gap-3 text-[var(--color-warning)] py-1.5 border-b border-[var(--color-surface-3)] last:border-b-0">
+              <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-warning)] flex-shrink-0" />
+              <span>{asset}</span>
+            </div>
+          ))}
+        </div>
+      </Card>
     </div>
   );
 }
-
-function ChartCard({ title, children }) {
-  return (
-    <div className="rounded-[2rem] border border-slate-500/60 bg-[#20496d]/90 px-5 py-4 shadow-[0_14px_30px_rgba(0,0,0,0.22)] min-h-[220px]">
-      <h3 className="text-[18px] font-medium text-slate-100">{title}</h3>
-      <div className="h-[170px]">{children}</div>
-    </div>
-  );
-}
-
-

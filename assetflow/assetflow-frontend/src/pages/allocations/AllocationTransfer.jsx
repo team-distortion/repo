@@ -1,6 +1,16 @@
 import { useState, useMemo, useEffect } from 'react';
 import { AlertCircle, Send } from 'lucide-react';
-import { useGetAssetsQuery, useGetUsersQuery, useCreateTransferMutation, useGetAllocationsQuery, useGetDepartmentsQuery, useGetTransfersQuery, useCreateAllocationMutation } from '../../store/apiSlice';
+import { 
+  useGetAssetsQuery, 
+  useGetUsersQuery, 
+  useCreateTransferMutation, 
+  useGetAllocationsQuery, 
+  useGetDepartmentsQuery, 
+  useGetTransfersQuery, 
+  useCreateAllocationMutation 
+} from '../../store/apiSlice';
+import Button from '../../components/ui/Button';
+import Card from '../../components/ui/Card';
 
 export default function AllocationTransfer() {
   const [selectedAssetId, setSelectedAssetId] = useState('');
@@ -25,15 +35,9 @@ export default function AllocationTransfer() {
   const departments = deptsRes?.data || [];
   const transfers = transfersRes?.data || [];
 
-  const allocatedAssets = useMemo(() => {
-    return assets.filter(a => a.status === 'Allocated');
-  }, [assets]);
-
   const displayAssets = assets.length > 0 ? assets : [{ id: 'mock-1', tag: 'AF-0114', name: 'Dell laptop', status: 'Available' }];
-  
   const selectedAsset = displayAssets.find((a) => a.id === (selectedAssetId || displayAssets[0]?.id)) || displayAssets[0];
   
-  // Reverted: Only block/show warning if truly allocated
   const isBlocked = selectedAsset?.status === 'Allocated';
 
   const assetHistory = useMemo(() => {
@@ -52,14 +56,14 @@ export default function AllocationTransfer() {
         history.push({
           timestamp: new Date(alloc.returned_at).getTime(),
           date: new Date(alloc.returned_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit' }),
-          text: `Returned by ${assignedUser.name} - condition: ${alloc.condition_check_in_notes || 'good'}`
+          text: `Returned by ${assignedUser.name} — condition: ${alloc.condition_check_in_notes || 'good'}`
         });
       }
       
       history.push({
         timestamp: new Date(alloc.created_at).getTime(),
         date: new Date(alloc.created_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit' }),
-        text: `Allocated to ${assignedUser.name} - ${deptName}`
+        text: `Allocated to ${assignedUser.name} (${deptName})`
       });
     });
 
@@ -80,16 +84,14 @@ export default function AllocationTransfer() {
     return allocations.find(a => a.asset_id === selectedAsset?.id && !a.returned_at);
   }, [allocations, selectedAsset]);
 
-  // Sync transferFromId when selectedAsset changes
   useEffect(() => {
     if (activeAllocation?.assigned_user_id) {
       setTransferFromId(activeAllocation.assigned_user_id);
     } else {
-      setTransferFromId(''); // Clear "From" if asset is available
+      setTransferFromId('');
     }
   }, [activeAllocation]);
 
-  // Fallback for current holder if populated in backend, else use activeAllocation
   const activeAllocationUser = users.find(u => u.id === activeAllocation?.assigned_user_id);
   const activeAllocationDept = departments.find(d => d.id === activeAllocation?.assigned_dept_id || d.id === activeAllocationUser?.departmentId);
 
@@ -98,13 +100,10 @@ export default function AllocationTransfer() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // For Allocation (Available): Reason is optional? Let's keep it required just in case, but usually not required for allocation.
-    // The user's prompt says "Add text box for reason of transfer". We'll require it for both.
     if (!transferToId || !reason.trim() || !selectedAsset) return;
     
     try {
       if (isBlocked) {
-        // Submit a Transfer Request
         await createTransfer({
           assetId: selectedAsset.id,
           allocationId: activeAllocation?.id,
@@ -113,12 +112,11 @@ export default function AllocationTransfer() {
           reason
         }).unwrap();
       } else {
-        // Submit an Allocation Request
         await createAllocation({
           assetId: selectedAsset.id,
           assignedUserId: transferToId,
           assignedDeptId: null,
-          notes: reason // Assuming notes or just send it anyway
+          notes: reason
         }).unwrap();
       }
       
@@ -132,15 +130,23 @@ export default function AllocationTransfer() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8 animate-in fade-in duration-500">
+    <div className="max-w-4xl mx-auto space-y-8">
+      {/* Page Title */}
       <div>
-        <h2 className="text-3xl font-bold text-white tracking-tight">Allocation & Transfer</h2>
-        <p className="text-slate-400 mt-2 text-sm">Manage asset assignments and transfer requests.</p>
+        <h1 className="text-[36px] font-semibold leading-[1.15] text-[var(--color-text)] tracking-tight">
+          Allocation & Transfer
+        </h1>
+        <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
+          Manage equipment assignments, department handoffs, and transfer approvals
+        </p>
       </div>
 
-      <div className="glass-panel rounded-3xl p-8 space-y-6 border border-slate-700/60 shadow-2xl">
-        <div>
-          <label className="block text-sm font-medium text-slate-300 mb-2">Asset</label>
+      {/* Main Request Form Card */}
+      <Card className="space-y-6">
+        <div className="space-y-1">
+          <label className="block text-[13px] font-medium text-[var(--color-text-secondary)]">
+            Select Asset
+          </label>
           <select
             value={selectedAssetId || (selectedAsset?.id || '')}
             onChange={(e) => {
@@ -149,43 +155,49 @@ export default function AllocationTransfer() {
               setReason('');
               setSubmitted(false);
             }}
-            className="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+            className="w-full h-10 px-3 rounded-lg text-[14px] text-[var(--color-text)] bg-[var(--color-surface-2)] border border-[var(--color-border-strong)] focus:outline-none focus:border-[var(--color-primary)] focus:ring-[3px] focus:ring-[var(--color-primary)]/25 cursor-pointer"
           >
             {displayAssets.map((asset) => (
               <option key={asset.id} value={asset.id}>
-                {asset.asset_tag || asset.tag} - {asset.name}
+                {asset.asset_tag || asset.tag} — {asset.name} ({asset.status})
               </option>
             ))}
           </select>
         </div>
 
+        {/* Warning Alert if already allocated */}
         {isBlocked && (
-          <div className="bg-red-900/40 border border-red-500/50 rounded-xl p-4 flex items-start gap-3 text-red-400">
-            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+          <div className="bg-[var(--color-error-tint)] border border-[var(--color-error)]/40 rounded-xl p-4 flex items-start gap-3 text-[var(--color-error)]">
+            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" strokeWidth={1.75} />
             <div>
-              <p className="font-semibold">
+              <p className="text-[14px] font-medium">
                 Already Allocated to {currentHolderName} ({currentHolderDept})
               </p>
-              <p className="text-sm mt-1 text-red-400/80">
-                Direct re-allocation is blocked — submit a transfer request below
+              <p className="text-[13px] text-[var(--color-error)]/80 mt-0.5">
+                Direct re-allocation is blocked — submit a transfer request below.
               </p>
             </div>
           </div>
         )}
 
-        <div className="space-y-5 pt-2">
-          <h3 className="text-lg font-semibold text-white">{isBlocked ? 'Transfer Request' : 'Allocation Request'}</h3>
+        <form onSubmit={handleSubmit} className="space-y-5 pt-2">
+          <h2 className="text-[18px] font-semibold text-[var(--color-text)] tracking-tight">
+            {isBlocked ? 'Transfer Request' : 'Allocation Request'}
+          </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">From</label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="block text-[13px] font-medium text-[var(--color-text-secondary)]">
+                From (Current Holder)
+              </label>
               <select
                 value={transferFromId}
+                disabled={isBlocked}
                 onChange={(e) => setTransferFromId(e.target.value)}
-                className="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+                className="w-full h-10 px-3 rounded-lg text-[14px] text-[var(--color-text)] bg-[var(--color-surface-2)] border border-[var(--color-border-strong)] focus:outline-none focus:border-[var(--color-primary)] focus:ring-[3px] focus:ring-[var(--color-primary)]/25 disabled:bg-[var(--color-surface)] disabled:text-[var(--color-text-disabled)] disabled:border-[var(--color-border)]"
               >
-                <option value="">Select Employee....</option>
-                {users.filter(emp => emp.id !== transferToId).map((emp) => (
+                <option value="">None / Storage</option>
+                {users.map((emp) => (
                   <option key={emp.id} value={emp.id}>
                     {emp.name} — {emp.role || 'Employee'}
                   </option>
@@ -193,14 +205,17 @@ export default function AllocationTransfer() {
               </select>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">To</label>
+            <div className="space-y-1">
+              <label className="block text-[13px] font-medium text-[var(--color-text-secondary)]">
+                To (New Recipient)
+              </label>
               <select
+                required
                 value={transferToId}
                 onChange={(e) => setTransferToId(e.target.value)}
-                className="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+                className="w-full h-10 px-3 rounded-lg text-[14px] text-[var(--color-text)] bg-[var(--color-surface-2)] border border-[var(--color-border-strong)] focus:outline-none focus:border-[var(--color-primary)] focus:ring-[3px] focus:ring-[var(--color-primary)]/25 cursor-pointer"
               >
-                <option value="">Select Employee....</option>
+                <option value="">Select Recipient Employee...</option>
                 {users.filter(emp => emp.id !== transferFromId).map((emp) => (
                   <option key={emp.id} value={emp.id}>
                     {emp.name} — {emp.role || 'Employee'}
@@ -210,52 +225,62 @@ export default function AllocationTransfer() {
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">Reason</label>
+          <div className="space-y-1">
+            <label className="block text-[13px] font-medium text-[var(--color-text-secondary)]">
+              Reason for Transfer / Allocation
+            </label>
             <textarea
+              required
+              rows={3}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              rows={4}
-              className="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all resize-none placeholder:text-slate-600"
-              placeholder="Describe why this transfer is needed..."
+              placeholder="Describe the operational reason for this assignment..."
+              className="w-full p-3 rounded-lg text-[14px] text-[var(--color-text)] placeholder-[var(--color-text-tertiary)] bg-[var(--color-surface-2)] border border-[var(--color-border-strong)] focus:outline-none focus:border-[var(--color-primary)] focus:ring-[3px] focus:ring-[var(--color-primary)]/25 resize-none transition-colors"
             />
           </div>
 
-          <button
-            onClick={handleSubmit}
-            disabled={!transferToId || !reason.trim() || isLoading}
-            className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 disabled:from-slate-700 disabled:to-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed text-white px-8 py-3 rounded-xl text-sm font-semibold transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] flex items-center justify-center gap-2"
-          >
-            <Send className="w-4 h-4" /> {isLoading ? 'Submitting...' : 'Submit Request'}
-          </button>
+          <div className="flex items-center justify-between pt-2">
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={!transferToId || !reason.trim() || isLoading}
+            >
+              <Send className="w-4 h-4" strokeWidth={1.75} />
+              {isLoading ? 'Submitting...' : isBlocked ? 'Submit Transfer Request' : 'Allocate Asset'}
+            </Button>
 
-          {submitted && (
-            <p className="text-emerald-400 text-sm font-medium animate-in fade-in">
-              Transfer request submitted for approval.
-            </p>
-          )}
-        </div>
-      </div>
+            {submitted && (
+              <p className="text-[13px] text-[var(--color-primary)] font-medium animate-in fade-in">
+                Request submitted successfully.
+              </p>
+            )}
+          </div>
+        </form>
+      </Card>
 
-      <div className="space-y-4">
-        <h3 className="text-xl font-semibold text-white border-b border-slate-700 pb-2">Allocation history</h3>
+      {/* Asset History Section */}
+      <Card className="space-y-4">
+        <h2 className="text-[18px] font-semibold text-[var(--color-text)] tracking-tight">
+          Allocation History
+        </h2>
         <div className="space-y-3">
           {assetHistory.length > 0 ? (
             assetHistory.map((entry, i) => (
-              <div key={i} className="flex items-center gap-3 text-slate-300 py-1">
-                <div className="w-1.5 h-1.5 rounded-full bg-slate-500 flex-shrink-0" />
-                <p className="text-[15px]">
-                  <span className="text-slate-500">{entry.date}</span>
-                  {' — '}
+              <div key={i} className="flex items-center gap-3 text-[14px] text-[var(--color-text-secondary)] py-1 border-b border-[var(--color-surface-3)] last:border-b-0">
+                <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-primary)] flex-shrink-0" />
+                <p className="leading-relaxed">
+                  <span className="text-[var(--color-text-tertiary)] font-mono text-[13px] mr-2">{entry.date}</span>
                   {entry.text}
                 </p>
               </div>
             ))
           ) : (
-            <p className="text-slate-500 text-sm">No allocation history found for this asset.</p>
+            <p className="text-[13px] text-[var(--color-text-tertiary)] py-4 text-center">
+              No historical records found for this asset.
+            </p>
           )}
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

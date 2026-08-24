@@ -1,6 +1,16 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { Home, Package, Calendar, Wrench, FileText, Settings, Users, ArrowRightLeft, ClipboardCheck, Bell } from 'lucide-react';
+import { 
+  Home, 
+  Package, 
+  Calendar, 
+  Wrench, 
+  FileText, 
+  Settings, 
+  ArrowRightLeft, 
+  ClipboardCheck, 
+  Bell 
+} from 'lucide-react';
 
 export default function Sidebar() {
   const { role } = useSelector(state => state.auth);
@@ -8,7 +18,7 @@ export default function Sidebar() {
 
   const navItems = [
     { name: 'Dashboard', path: '/', icon: Home, roles: ['Admin', 'Asset Manager', 'Department Head', 'Employee'] },
-    { name: 'Organization setup', path: '/setup', icon: Settings, roles: ['Admin'] },
+    { name: 'Organization Setup', path: '/setup', icon: Settings, roles: ['Admin'] },
     { name: 'Assets', path: '/assets', icon: Package, roles: ['Admin', 'Asset Manager', 'Department Head', 'Employee'] },
     { name: 'Allocation & Transfer', path: '/allocations', icon: ArrowRightLeft, roles: ['Admin', 'Asset Manager', 'Department Head', 'Employee'] },
     { name: 'Resource Booking', path: '/bookings', icon: Calendar, roles: ['Admin', 'Asset Manager', 'Department Head', 'Employee'] },
@@ -19,13 +29,15 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside className="w-64 glass-panel h-full flex flex-col z-10 relative border-y-0 border-l-0">
-      <div className="p-6 flex items-center gap-3 border-b border-slate-700">
-        <Package className="text-brand-blue-light w-8 h-8" />
-        <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-400">AssetFlow</h1>
+    <aside className="w-[240px] bg-[var(--color-surface)] border-r border-[var(--color-border)] h-full flex flex-col z-10 select-none">
+      {/* Brand Header (56px) */}
+      <div className="h-14 px-6 flex items-center gap-3 border-b border-[var(--color-border)]">
+        <Package className="w-5 h-5 text-[var(--color-primary)]" strokeWidth={1.75} />
+        <span className="text-[18px] font-semibold text-[var(--color-text)] tracking-tight">AssetFlow</span>
       </div>
       
-      <nav className="flex-1 p-4 space-y-2">
+      {/* Navigation */}
+      <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         {navItems.filter(item => item.roles.includes(role || 'Employee')).map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path || (location.pathname.startsWith(item.path) && item.path !== '/');
@@ -33,11 +45,13 @@ export default function Sidebar() {
             <Link
               key={item.name}
               to={item.path}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                isActive ? 'bg-brand-blue/20 text-blue-400 border border-brand-blue/30' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-[14px] font-medium transition-all duration-150 ease-out ${
+                isActive 
+                  ? 'bg-[var(--color-primary-tint)] text-[var(--color-primary)]' 
+                  : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-2)]'
               }`}
             >
-              <Icon className="w-5 h-5" />
+              <Icon className="w-[18px] h-[18px]" strokeWidth={1.75} />
               <span>{item.name}</span>
             </Link>
           );

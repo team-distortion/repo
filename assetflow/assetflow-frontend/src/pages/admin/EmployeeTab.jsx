@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { Plus, Edit2, Trash2, Search, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search } from 'lucide-react';
 import { api } from '../../utils/api';
+import Button from '../../components/ui/Button';
+import Input from '../../components/ui/Input';
+import Badge from '../../components/ui/Badge';
+import Modal from '../../components/ui/Modal';
 
 export default function EmployeeTab() {
   const [users, setUsers] = useState([]);
@@ -10,12 +13,10 @@ export default function EmployeeTab() {
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
 
-  // Form states
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -54,13 +55,6 @@ export default function EmployeeTab() {
     return dept ? dept.name : 'Unassigned';
   };
 
-  const getRoleLabel = (role) => {
-    if (role === 'AssetManager') return 'Asset Manager';
-    if (role === 'DepartmentHead') return 'Department Head';
-    return role;
-  };
-
-  // Form handlers
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -94,14 +88,12 @@ export default function EmployeeTab() {
     e.preventDefault();
     setFormError(null);
 
-    // Validate email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       setFormError('Please enter a valid email address.');
       return;
     }
 
-    // Validate strong password
     const passwordErr = validatePassword(formData.password);
     if (passwordErr) {
       setFormError(passwordErr);
@@ -133,7 +125,7 @@ export default function EmployeeTab() {
     setFormData({
       name: user.name,
       email: user.email,
-      password: '', // blank password unless resetting
+      password: '',
       departmentId: user.departmentId || '',
       role: user.role,
       status: user.status,
@@ -146,14 +138,12 @@ export default function EmployeeTab() {
     e.preventDefault();
     setFormError(null);
 
-    // Validate email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       setFormError('Please enter a valid email address.');
       return;
     }
 
-    // Validate password ONLY if entered
     if (formData.password) {
       const passwordErr = validatePassword(formData.password);
       if (passwordErr) {
@@ -206,111 +196,93 @@ export default function EmployeeTab() {
 
   if (loading && users.length === 0) {
     return (
-      <div className="p-20 text-center text-slate-400">
-        <div className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-emerald-500 rounded-full mb-4" role="status" aria-label="loading"></div>
-        <p>Loading employee directory...</p>
+      <div className="p-16 text-center text-[#98989D] text-[14px]">
+        Loading employee directory...
       </div>
     );
   }
 
   return (
-    <div className="animate-in slide-in-from-bottom-4 duration-500 space-y-6">
-      
-      {/* Search and Tab-level Actions */}
-      <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center justify-between p-6 pb-0">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-500" />
+    <div className="space-y-4">
+      {/* Header controls */}
+      <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between p-4 pb-0">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#98989D]" strokeWidth={1.75} />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by name, email, department..."
-            className="w-full bg-slate-900/60 border border-slate-700/60 rounded-xl pl-11 pr-4 py-2.5 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all text-sm"
+            placeholder="Search by name, email, dept..."
+            className="w-full h-10 bg-[#202022] border border-[#48484A] rounded-lg pl-9 pr-3 text-[14px] text-[#F5F5F7] placeholder-[#6E6E73] focus:outline-none focus:border-[#0A84FF] focus:ring-[3px] focus:ring-[#0A84FF]/25 transition-colors"
           />
         </div>
-        
-        <button
-          onClick={openAddModal}
-          className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] flex items-center justify-center gap-2 hover:-translate-y-0.5"
-        >
-          <Plus className="w-4 h-4" /> Add Employee
-        </button>
+
+        <Button onClick={openAddModal} variant="primary">
+          <Plus className="w-4 h-4" strokeWidth={1.75} /> Add Employee
+        </Button>
       </div>
 
       {error && (
-        <div className="mx-6 bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-2xl">
-          <p className="font-semibold">Error Loading Employee Directory</p>
-          <p className="text-sm mt-1">{error}</p>
+        <div className="p-4 mx-4 bg-[#330C0A] border border-[#FF453A]/40 text-[#FF6961] rounded-xl text-[13px]">
+          {error}
         </div>
       )}
 
-      {/* Directory Table */}
+      {/* Table Surface (§9 Tables) */}
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse whitespace-nowrap">
           <thead>
-            <tr className="border-b border-slate-700/60 bg-slate-900/30">
-              <th className="py-5 px-8 font-semibold text-slate-400 uppercase tracking-wider text-[11px]">Employee Name</th>
-              <th className="py-5 px-8 font-semibold text-slate-400 uppercase tracking-wider text-[11px]">Email</th>
-              <th className="py-5 px-8 font-semibold text-slate-400 uppercase tracking-wider text-[11px]">Department</th>
-              <th className="py-5 px-8 font-semibold text-slate-400 uppercase tracking-wider text-[11px]">Role</th>
-              <th className="py-5 px-8 font-semibold text-slate-400 uppercase tracking-wider text-[11px]">Status</th>
-              <th className="py-5 px-8 font-semibold text-slate-400 uppercase tracking-wider text-[11px] text-right">Actions</th>
+            <tr className="h-11 border-b border-[#38383A] bg-[#202022]">
+              <th className="px-4 text-[12px] font-medium text-[#98989D] uppercase tracking-wider">Employee Name</th>
+              <th className="px-4 text-[12px] font-medium text-[#98989D] uppercase tracking-wider">Email Address</th>
+              <th className="px-4 text-[12px] font-medium text-[#98989D] uppercase tracking-wider">Department</th>
+              <th className="px-4 text-[12px] font-medium text-[#98989D] uppercase tracking-wider">Role</th>
+              <th className="px-4 text-[12px] font-medium text-[#98989D] uppercase tracking-wider">Status</th>
+              <th className="px-4 text-[12px] font-medium text-[#98989D] uppercase tracking-wider text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-700/40">
-            {filteredUsers.map((user) => {
-              const uId = user.id || user.userId;
-              return (
-                <tr key={uId} className="hover:bg-slate-700/30 transition-colors group">
-                  <td className="py-5 px-8">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-500 flex items-center justify-center text-xs font-bold text-white shadow-md">
-                        {user.name.charAt(0).toUpperCase()}
-                      </div>
-                      <span className="font-semibold text-slate-200 tracking-wide">{user.name}</span>
-                    </div>
-                  </td>
-                  <td className="py-5 px-8 text-slate-300 text-sm font-medium">{user.email}</td>
-                  <td className="py-5 px-8 text-slate-400 text-sm">{getDeptName(user.departmentId)}</td>
-                  <td className="py-5 px-8 text-slate-400 text-sm">
-                    <span className="bg-slate-900/80 px-2.5 py-1 rounded-lg text-slate-300 border border-slate-700/50">
-                      {getRoleLabel(user.role)}
-                    </span>
-                  </td>
-                  <td className="py-5 px-8">
-                    <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-[11px] uppercase tracking-wider font-bold border ${
-                      user.status === 'Active' 
-                        ? 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10' 
-                        : 'border-slate-500/30 text-slate-400 bg-slate-500/10'
-                    }`}>
-                      {user.status}
-                    </span>
-                  </td>
-                  <td className="py-5 px-8 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button
-                        onClick={() => openEditModal(user)}
-                        className="text-slate-400 hover:text-white transition-colors p-2 hover:bg-slate-600/50 rounded-xl"
-                        title="Edit Employee"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteUser(uId)}
-                        className="text-slate-400 hover:text-red-400 transition-colors p-2 hover:bg-red-950/30 rounded-xl"
-                        title="Delete Employee"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
+          <tbody className="divide-y divide-[#38383A]">
+            {filteredUsers.map((user) => (
+              <tr key={user.id || user.userId} className="h-14 hover:bg-[#202022] transition-colors">
+                <td className="px-4 text-[14px] font-medium text-[#F5F5F7]">
+                  {user.name}
+                </td>
+                <td className="px-4 text-[13px] text-[#98989D]">
+                  {user.email}
+                </td>
+                <td className="px-4 text-[14px] text-[#98989D]">
+                  {getDeptName(user.departmentId)}
+                </td>
+                <td className="px-4 text-[13px] text-[#F5F5F7]">
+                  {user.role}
+                </td>
+                <td className="px-4">
+                  <Badge status={user.status}>{user.status}</Badge>
+                </td>
+                <td className="px-4 text-right">
+                  <div className="flex items-center justify-end gap-1">
+                    <button
+                      onClick={() => openEditModal(user)}
+                      className="p-1.5 text-[#98989D] hover:text-[#0A84FF] hover:bg-[#2C2C2E] rounded-lg transition-colors"
+                      title="Edit employee"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteUser(user.id || user.userId)}
+                      className="p-1.5 text-[#98989D] hover:text-[#FF6961] hover:bg-[#2C2C2E] rounded-lg transition-colors"
+                      title="Delete employee"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
             {filteredUsers.length === 0 && (
               <tr>
-                <td colSpan={6} className="py-12 px-8 text-center text-slate-500">
-                  No employees found matching the filters.
+                <td colSpan={6} className="h-32 text-center text-[#6E6E73] text-[14px]">
+                  No employees match your search query.
                 </td>
               </tr>
             )}
@@ -318,263 +290,220 @@ export default function EmployeeTab() {
         </table>
       </div>
 
-      {/* Add Employee Modal */}
-      {isAddModalOpen && createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="glass-panel w-full max-w-lg rounded-3xl p-8 border border-slate-700/80 relative shadow-2xl bg-slate-900/90 max-h-[90vh] overflow-y-auto">
-            <button
-              onClick={() => setIsAddModalOpen(false)}
-              className="absolute top-6 right-6 text-slate-400 hover:text-white transition-colors"
+      {/* Add Modal (§13 Modals) */}
+      <Modal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        title="Add New Employee"
+        size="md"
+      >
+        <form onSubmit={handleAddSubmit} className="space-y-4">
+          {formError && (
+            <div className="p-3 bg-[#330C0A] border border-[#FF453A]/40 text-[#FF6961] rounded-lg text-[13px]">
+              {formError}
+            </div>
+          )}
+
+          <Input
+            id="emp-name"
+            label="Full Name"
+            name="name"
+            required
+            value={formData.name}
+            onChange={handleInputChange}
+            placeholder="e.g. Jane Doe"
+          />
+
+          <Input
+            id="emp-email"
+            label="Email Address"
+            type="email"
+            name="email"
+            required
+            value={formData.email}
+            onChange={handleInputChange}
+            placeholder="e.g. jane.doe@company.com"
+          />
+
+          <Input
+            id="emp-password"
+            label="Initial Password"
+            type="password"
+            name="password"
+            required
+            value={formData.password}
+            onChange={handleInputChange}
+            helperText="At least 8 chars with uppercase, lowercase, and numbers."
+          />
+
+          <div className="space-y-1">
+            <label className="block text-[13px] font-medium text-[#98989D]">
+              Department
+            </label>
+            <select
+              name="departmentId"
+              value={formData.departmentId}
+              onChange={handleInputChange}
+              className="w-full h-10 px-3 rounded-lg text-[14px] text-[#F5F5F7] bg-[#202022] border border-[#48484A] focus:outline-none focus:border-[#0A84FF] focus:ring-[3px] focus:ring-[#0A84FF]/25 cursor-pointer"
             >
-              <X className="w-5 h-5" />
-            </button>
-
-            <h3 className="text-xl font-bold text-white mb-6">Add New Employee</h3>
-
-            {formError && (
-              <div className="mb-6 bg-red-500/10 border border-red-500/20 text-red-400 p-3.5 rounded-xl text-sm font-medium">
-                {formError}
-              </div>
-            )}
-
-            <form onSubmit={handleAddSubmit} className="space-y-5">
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Full Name</label>
-                <input
-                  type="text"
-                  name="name"
-                  required
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all text-sm"
-                  placeholder="e.g. Aditi Rao"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Email Address</label>
-                <input
-                  type="email"
-                  name="email"
-                  required
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all text-sm"
-                  placeholder="e.g. aditi@company.com"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Password</label>
-                <input
-                  type="password"
-                  name="password"
-                  required
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all text-sm"
-                  placeholder="At least 8 chars (1 Upper, 1 Lower, 1 Num)"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1.5">Department</label>
-                  <select
-                    name="departmentId"
-                    value={formData.departmentId}
-                    onChange={handleInputChange}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all text-sm"
-                  >
-                    <option value="">Unassigned</option>
-                    {departments.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1.5">System Role</label>
-                  <select
-                    name="role"
-                    value={formData.role}
-                    onChange={handleInputChange}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all text-sm"
-                  >
-                    <option value="Employee">Employee</option>
-                    <option value="DepartmentHead">Department Head</option>
-                    <option value="AssetManager">Asset Manager</option>
-                    <option value="Admin">Admin</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Status</label>
-                <select
-                  name="status"
-                  value={formData.status}
-                  onChange={handleInputChange}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all text-sm"
-                >
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                </select>
-              </div>
-
-              <div className="flex gap-4 justify-end pt-4">
-                <button
-                  type="button"
-                  onClick={() => setIsAddModalOpen(false)}
-                  className="px-5 py-2.5 rounded-xl border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors text-sm font-semibold"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={formSubmitting}
-                  className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50"
-                >
-                  {formSubmitting ? 'Creating...' : 'Create Employee'}
-                </button>
-              </div>
-            </form>
+              <option value="">Unassigned</option>
+              {departments.map((d) => (
+                <option key={d.id} value={d.id}>{d.name}</option>
+              ))}
+            </select>
           </div>
-        </div>,
-        document.body
-      )}
 
-      {/* Edit Employee Modal */}
-      {isEditModalOpen && createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="glass-panel w-full max-w-lg rounded-3xl p-8 border border-slate-700/80 relative shadow-2xl bg-slate-900/90 max-h-[90vh] overflow-y-auto">
-            <button
-              onClick={() => setIsEditModalOpen(false)}
-              className="absolute top-6 right-6 text-slate-400 hover:text-white transition-colors"
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="block text-[13px] font-medium text-[#98989D]">
+                Role
+              </label>
+              <select
+                name="role"
+                value={formData.role}
+                onChange={handleInputChange}
+                className="w-full h-10 px-3 rounded-lg text-[14px] text-[#F5F5F7] bg-[#202022] border border-[#48484A] focus:outline-none focus:border-[#0A84FF] focus:ring-[3px] focus:ring-[#0A84FF]/25 cursor-pointer"
+              >
+                <option value="Employee">Employee</option>
+                <option value="DepartmentHead">Department Head</option>
+                <option value="AssetManager">Asset Manager</option>
+                <option value="Admin">Admin</option>
+              </select>
+            </div>
+
+            <div className="space-y-1">
+              <label className="block text-[13px] font-medium text-[#98989D]">
+                Status
+              </label>
+              <select
+                name="status"
+                value={formData.status}
+                onChange={handleInputChange}
+                className="w-full h-10 px-3 rounded-lg text-[14px] text-[#F5F5F7] bg-[#202022] border border-[#48484A] focus:outline-none focus:border-[#0A84FF] focus:ring-[3px] focus:ring-[#0A84FF]/25 cursor-pointer"
+              >
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+                <option value="Suspended">Suspended</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#38383A]">
+            <Button variant="ghost" onClick={() => setIsAddModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="primary" disabled={formSubmitting}>
+              {formSubmitting ? 'Creating...' : 'Create Employee'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Edit Modal */}
+      <Modal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        title="Edit Employee Account"
+        size="md"
+      >
+        <form onSubmit={handleEditSubmit} className="space-y-4">
+          {formError && (
+            <div className="p-3 bg-[#330C0A] border border-[#FF453A]/40 text-[#FF6961] rounded-lg text-[13px]">
+              {formError}
+            </div>
+          )}
+
+          <Input
+            id="edit-emp-name"
+            label="Full Name"
+            name="name"
+            required
+            value={formData.name}
+            onChange={handleInputChange}
+          />
+
+          <Input
+            id="edit-emp-email"
+            label="Email Address"
+            type="email"
+            name="email"
+            required
+            value={formData.email}
+            onChange={handleInputChange}
+          />
+
+          <Input
+            id="edit-emp-password"
+            label="Reset Password (Optional)"
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleInputChange}
+            placeholder="Leave blank to keep existing password"
+          />
+
+          <div className="space-y-1">
+            <label className="block text-[13px] font-medium text-[#98989D]">
+              Department
+            </label>
+            <select
+              name="departmentId"
+              value={formData.departmentId}
+              onChange={handleInputChange}
+              className="w-full h-10 px-3 rounded-lg text-[14px] text-[#F5F5F7] bg-[#202022] border border-[#48484A] focus:outline-none focus:border-[#0A84FF] focus:ring-[3px] focus:ring-[#0A84FF]/25 cursor-pointer"
             >
-              <X className="w-5 h-5" />
-            </button>
-
-            <h3 className="text-xl font-bold text-white mb-6">Edit Employee: {selectedUser?.name}</h3>
-
-            {formError && (
-              <div className="mb-6 bg-red-500/10 border border-red-500/20 text-red-400 p-3.5 rounded-xl text-sm font-medium">
-                {formError}
-              </div>
-            )}
-
-            <form onSubmit={handleEditSubmit} className="space-y-5">
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Full Name</label>
-                <input
-                  type="text"
-                  name="name"
-                  required
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all text-sm"
-                  placeholder="e.g. Aditi Rao"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Email Address</label>
-                <input
-                  type="email"
-                  name="email"
-                  required
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all text-sm"
-                  placeholder="e.g. aditi@company.com"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">
-                  Reset Password <span className="text-xs text-slate-500">(Leave blank to keep current)</span>
-                </label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all text-sm"
-                  placeholder="Enter new password if you want to reset"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1.5">Department</label>
-                  <select
-                    name="departmentId"
-                    value={formData.departmentId}
-                    onChange={handleInputChange}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all text-sm"
-                  >
-                    <option value="">Unassigned</option>
-                    {departments.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1.5">System Role</label>
-                  <select
-                    name="role"
-                    value={formData.role}
-                    onChange={handleInputChange}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all text-sm"
-                  >
-                    <option value="Employee">Employee</option>
-                    <option value="DepartmentHead">Department Head</option>
-                    <option value="AssetManager">Asset Manager</option>
-                    <option value="Admin">Admin</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Status</label>
-                <select
-                  name="status"
-                  value={formData.status}
-                  onChange={handleInputChange}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all text-sm"
-                >
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                </select>
-              </div>
-
-              <div className="flex gap-4 justify-end pt-4">
-                <button
-                  type="button"
-                  onClick={() => setIsEditModalOpen(false)}
-                  className="px-5 py-2.5 rounded-xl border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors text-sm font-semibold"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={formSubmitting}
-                  className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50"
-                >
-                  {formSubmitting ? 'Saving...' : 'Save Changes'}
-                </button>
-              </div>
-            </form>
+              <option value="">Unassigned</option>
+              {departments.map((d) => (
+                <option key={d.id} value={d.id}>{d.name}</option>
+              ))}
+            </select>
           </div>
-        </div>,
-        document.body
-      )}
 
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="block text-[13px] font-medium text-[#98989D]">
+                Role
+              </label>
+              <select
+                name="role"
+                value={formData.role}
+                onChange={handleInputChange}
+                className="w-full h-10 px-3 rounded-lg text-[14px] text-[#F5F5F7] bg-[#202022] border border-[#48484A] focus:outline-none focus:border-[#0A84FF] focus:ring-[3px] focus:ring-[#0A84FF]/25 cursor-pointer"
+              >
+                <option value="Employee">Employee</option>
+                <option value="DepartmentHead">Department Head</option>
+                <option value="AssetManager">Asset Manager</option>
+                <option value="Admin">Admin</option>
+              </select>
+            </div>
+
+            <div className="space-y-1">
+              <label className="block text-[13px] font-medium text-[#98989D]">
+                Status
+              </label>
+              <select
+                name="status"
+                value={formData.status}
+                onChange={handleInputChange}
+                className="w-full h-10 px-3 rounded-lg text-[14px] text-[#F5F5F7] bg-[#202022] border border-[#48484A] focus:outline-none focus:border-[#0A84FF] focus:ring-[3px] focus:ring-[#0A84FF]/25 cursor-pointer"
+              >
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+                <option value="Suspended">Suspended</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#38383A]">
+            <Button variant="ghost" onClick={() => setIsEditModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="primary" disabled={formSubmitting}>
+              {formSubmitting ? 'Updating...' : 'Save Changes'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

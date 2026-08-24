@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Package, Mail, ShieldCheck, ArrowLeft } from 'lucide-react';
+import { Package, ShieldCheck, ArrowLeft } from 'lucide-react';
+import Button from '../../components/ui/Button';
+import Input from '../../components/ui/Input';
 
 export default function ResetPassword() {
   const [searchParams] = useSearchParams();
@@ -87,108 +89,102 @@ export default function ResetPassword() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-900 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-slate-800 via-slate-900 to-black p-4">
-      <div className="glass-panel p-10 rounded-3xl w-full max-w-md shadow-2xl relative overflow-hidden">
-        <div className="absolute -top-20 -right-20 w-40 h-40 bg-blue-500 rounded-full blur-3xl opacity-20" />
-        <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-indigo-500 rounded-full blur-3xl opacity-20" />
-
-        <div className="flex flex-col items-center mb-8 relative z-10">
-          <div className="w-16 h-16 bg-blue-500/10 border border-blue-500/20 rounded-full flex items-center justify-center mb-4">
-            {isResetMode ? <ShieldCheck className="w-8 h-8 text-blue-400" /> : <Package className="w-8 h-8 text-blue-400" />}
+    <div className="min-h-screen flex items-center justify-center bg-[#000000] p-4 text-[#F5F5F7]">
+      <div className="w-full max-w-[420px] bg-[#1C1C1E] border border-[#38383A] rounded-[20px] p-8 shadow-[0_16px_48px_rgba(0,0,0,0.60)] space-y-6 animate-in fade-in zoom-in-95 duration-200">
+        
+        {/* Brand Header */}
+        <div className="flex flex-col items-center text-center space-y-2">
+          <div className="w-12 h-12 rounded-xl bg-[#202022] border border-[#38383A] flex items-center justify-center text-[#0A84FF] mb-1">
+            {isResetMode ? (
+              <ShieldCheck className="w-6 h-6" strokeWidth={1.75} />
+            ) : (
+              <Package className="w-6 h-6" strokeWidth={1.75} />
+            )}
           </div>
-          <h2 className="text-3xl font-bold text-white text-center">AssetFlow</h2>
-          <p className="text-slate-400 mt-2 text-center text-sm">{title}</p>
+          <h1 className="text-[28px] font-semibold leading-[1.2] text-[#F5F5F7] tracking-tight">
+            AssetFlow
+          </h1>
+          <p className="text-[14px] text-[#98989D]">{title}</p>
         </div>
 
-        <div className="relative z-10 space-y-6">
-          {error ? (
-            <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-              {error}
-            </div>
-          ) : null}
-
-          {status ? (
-            <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
-              {status}
-            </div>
-          ) : null}
-
-          {!isResetMode ? (
-            <form onSubmit={handleRequestReset} className="space-y-5">
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Email Address</label>
-                <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                    className="w-full bg-slate-900/50 border border-slate-700 rounded-xl pl-11 pr-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all placeholder:text-slate-600"
-                    placeholder="you@company.com"
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-60 text-white font-medium py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(37,99,235,0.3)] hover:shadow-[0_0_25px_rgba(37,99,235,0.5)]"
-              >
-                {loading ? 'Sending link...' : 'Send reset link'}
-              </button>
-            </form>
-          ) : (
-            <form onSubmit={handleResetPassword} className="space-y-5">
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Email Address</label>
-                <input
-                  type="email"
-                  value={emailFromQuery}
-                  disabled
-                  className="w-full bg-slate-900/40 border border-slate-700 rounded-xl px-4 py-3 text-slate-300"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">New Password</label>
-                <input
-                  type="password"
-                  required
-                  value={newPassword}
-                  onChange={(event) => setNewPassword(event.target.value)}
-                  className="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all placeholder:text-slate-600"
-                  placeholder="••••••••"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Confirm Password</label>
-                <input
-                  type="password"
-                  required
-                  value={confirmPassword}
-                  onChange={(event) => setConfirmPassword(event.target.value)}
-                  className="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all placeholder:text-slate-600"
-                  placeholder="••••••••"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-60 text-white font-medium py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(37,99,235,0.3)] hover:shadow-[0_0_25px_rgba(37,99,235,0.5)]"
-              >
-                {loading ? 'Resetting...' : 'Reset password'}
-              </button>
-            </form>
-          )}
-
-          <div className="text-center">
-            <Link to="/login" className="inline-flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 transition-colors">
-              <ArrowLeft className="w-4 h-4" /> Back to login
-            </Link>
+        {error && (
+          <div className="p-3 bg-[#330C0A] border border-[#FF453A]/40 text-[#FF6961] rounded-lg text-[13px]">
+            {error}
           </div>
+        )}
+
+        {status && (
+          <div className="p-3 bg-[#0F2A1A] border border-[#30D158]/40 text-[#32D74B] rounded-lg text-[13px]">
+            {status}
+          </div>
+        )}
+
+        {!isResetMode ? (
+          <form onSubmit={handleRequestReset} className="space-y-4">
+            <Input
+              id="reset-email"
+              label="Email Address"
+              type="email"
+              required
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="you@company.com"
+            />
+
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={loading}
+              className="w-full mt-2"
+            >
+              {loading ? 'Sending Link...' : 'Send Reset Link'}
+            </Button>
+          </form>
+        ) : (
+          <form onSubmit={handleResetPassword} className="space-y-4">
+            <Input
+              id="reset-email-disabled"
+              label="Email Address"
+              type="email"
+              value={emailFromQuery}
+              disabled
+            />
+
+            <Input
+              id="new-password"
+              label="New Password"
+              type="password"
+              required
+              value={newPassword}
+              onChange={(event) => setNewPassword(event.target.value)}
+              placeholder="••••••••"
+            />
+
+            <Input
+              id="confirm-password"
+              label="Confirm Password"
+              type="password"
+              required
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+              placeholder="••••••••"
+            />
+
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={loading}
+              className="w-full mt-2"
+            >
+              {loading ? 'Resetting Password...' : 'Reset Password'}
+            </Button>
+          </form>
+        )}
+
+        <div className="text-center pt-2 border-t border-[#38383A]">
+          <Link to="/login" className="inline-flex items-center gap-1.5 text-[13px] text-[#0A84FF] hover:underline font-medium">
+            <ArrowLeft className="w-3.5 h-3.5" /> Back to sign in
+          </Link>
         </div>
       </div>
     </div>
