@@ -53,18 +53,18 @@ export default function MaintenanceDesk() {
     }
   };
 
-  if (isLoading) return <div className="text-[#98989D] text-[14px] p-8">Loading maintenance requests...</div>;
-  if (error) return <div className="text-[#FF6961] text-[14px] p-8">Failed to load maintenance requests.</div>;
+  if (isLoading) return <div className="text-[var(--color-text-secondary)] text-[14px] p-8">Loading maintenance requests...</div>;
+  if (error) return <div className="text-[var(--color-error)] text-[14px] p-8">Failed to load maintenance requests.</div>;
 
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-[36px] font-semibold leading-[1.15] text-[#F5F5F7] tracking-tight">
+          <h1 className="text-[36px] font-semibold leading-[1.15] text-[var(--color-text)] tracking-tight">
             Maintenance Desk
           </h1>
-          <p className="text-[14px] text-[#98989D] mt-1">
+          <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
             Track equipment repairs, work orders, and technical servicing
           </p>
         </div>
@@ -74,46 +74,46 @@ export default function MaintenanceDesk() {
         </Button>
       </div>
 
-      {/* Table Card Surface (§9 Tables & §8 Cards) */}
-      <div className="bg-[#1C1C1E] border border-[#38383A] rounded-2xl overflow-hidden">
+      {/* Table Card Surface */}
+      <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse whitespace-nowrap">
             <thead>
-              <tr className="h-11 border-b border-[#38383A] bg-[#202022]">
-                <th className="px-4 text-[12px] font-medium text-[#98989D] uppercase tracking-wider">Ticket ID</th>
-                <th className="px-4 text-[12px] font-medium text-[#98989D] uppercase tracking-wider">Asset</th>
-                <th className="px-4 text-[12px] font-medium text-[#98989D] uppercase tracking-wider">Issue Description</th>
-                <th className="px-4 text-[12px] font-medium text-[#98989D] uppercase tracking-wider">Status</th>
-                <th className="px-4 text-[12px] font-medium text-[#98989D] uppercase tracking-wider">Priority</th>
-                <th className="px-4 text-[12px] font-medium text-[#98989D] uppercase tracking-wider">Requested By</th>
+              <tr className="h-11 border-b border-[var(--color-border)] bg-[var(--color-surface-2)]">
+                <th className="px-4 text-[12px] font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Ticket ID</th>
+                <th className="px-4 text-[12px] font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Asset</th>
+                <th className="px-4 text-[12px] font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Issue Description</th>
+                <th className="px-4 text-[12px] font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Status</th>
+                <th className="px-4 text-[12px] font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Priority</th>
+                <th className="px-4 text-[12px] font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Requested By</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#38383A]">
+            <tbody className="divide-y divide-[var(--color-border)]">
               {maintenanceList.map((req) => (
-                <tr key={req.id} className="h-14 hover:bg-[#202022] transition-colors">
-                  <td className="px-4 text-[13px] font-mono text-[#98989D]">
+                <tr key={req.id} className="h-14 hover:bg-[var(--color-surface-2)] transition-colors">
+                  <td className="px-4 text-[13px] font-mono text-[var(--color-text-secondary)]">
                     {req.id.substring(0, 8)}...
                   </td>
-                  <td className="px-4 text-[14px] font-medium text-[#F5F5F7]">
+                  <td className="px-4 text-[14px] font-medium text-[var(--color-text)]">
                     {req.assetName || req.assetId || 'Asset Item'}
                   </td>
-                  <td className="px-4 text-[14px] text-[#98989D] max-w-xs truncate" title={req.description}>
+                  <td className="px-4 text-[14px] text-[var(--color-text-secondary)] max-w-xs truncate" title={req.description}>
                     {req.description}
                   </td>
                   <td className="px-4">
                     <Badge status={req.status}>{req.status}</Badge>
                   </td>
-                  <td className="px-4 text-[14px] text-[#F5F5F7]">
+                  <td className="px-4 text-[14px] text-[var(--color-text)]">
                     {req.priority}
                   </td>
-                  <td className="px-4 text-[14px] text-[#98989D]">
+                  <td className="px-4 text-[14px] text-[var(--color-text-secondary)]">
                     {req.requestedBy || 'N/A'}
                   </td>
                 </tr>
               ))}
               {maintenanceList.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="h-32 text-center text-[#6E6E73] text-[14px]">
+                  <td colSpan={6} className="h-32 text-center text-[var(--color-text-tertiary)] text-[14px]">
                     No active maintenance tickets recorded.
                   </td>
                 </tr>
@@ -123,7 +123,7 @@ export default function MaintenanceDesk() {
         </div>
       </div>
 
-      {/* Raise Maintenance Request Modal (§13 Modals) */}
+      {/* Raise Maintenance Request Modal */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -132,14 +132,14 @@ export default function MaintenanceDesk() {
       >
         <form onSubmit={handleNewRequest} className="space-y-4">
           <div className="space-y-1">
-            <label className="block text-[13px] font-medium text-[#98989D]">
+            <label className="block text-[13px] font-medium text-[var(--color-text-secondary)]">
               Select Asset
             </label>
             <select
               required
               value={newRequest.assetId}
               onChange={e => setNewRequest({ ...newRequest, assetId: e.target.value })}
-              className="w-full h-10 px-3 rounded-lg text-[14px] text-[#F5F5F7] bg-[#202022] border border-[#48484A] focus:outline-none focus:border-[#0A84FF] focus:ring-[3px] focus:ring-[#0A84FF]/25 cursor-pointer"
+              className="w-full h-10 px-3 rounded-lg text-[14px] text-[var(--color-text)] bg-[var(--color-surface-2)] border border-[var(--color-border-strong)] focus:outline-none focus:border-[var(--color-primary)] focus:ring-[3px] focus:ring-[var(--color-primary)]/25 cursor-pointer"
             >
               <option value="">Select Asset...</option>
               {assets.map(a => (
@@ -151,7 +151,7 @@ export default function MaintenanceDesk() {
           </div>
 
           <div className="space-y-1">
-            <label className="block text-[13px] font-medium text-[#98989D]">
+            <label className="block text-[13px] font-medium text-[var(--color-text-secondary)]">
               Issue Description
             </label>
             <textarea
@@ -160,19 +160,19 @@ export default function MaintenanceDesk() {
               value={newRequest.issueDescription}
               onChange={e => setNewRequest({ ...newRequest, issueDescription: e.target.value })}
               placeholder="Describe the failure, damage, or required servicing..."
-              className="w-full p-3 rounded-lg text-[14px] text-[#F5F5F7] placeholder-[#6E6E73] bg-[#202022] border border-[#48484A] focus:outline-none focus:border-[#0A84FF] focus:ring-[3px] focus:ring-[#0A84FF]/25 resize-none"
+              className="w-full p-3 rounded-lg text-[14px] text-[var(--color-text)] placeholder-[var(--color-text-tertiary)] bg-[var(--color-surface-2)] border border-[var(--color-border-strong)] focus:outline-none focus:border-[var(--color-primary)] focus:ring-[3px] focus:ring-[var(--color-primary)]/25 resize-none"
             />
           </div>
 
           <div className="space-y-1">
-            <label className="block text-[13px] font-medium text-[#98989D]">
+            <label className="block text-[13px] font-medium text-[var(--color-text-secondary)]">
               Priority Level
             </label>
             <select
               required
               value={newRequest.priority}
               onChange={e => setNewRequest({ ...newRequest, priority: e.target.value })}
-              className="w-full h-10 px-3 rounded-lg text-[14px] text-[#F5F5F7] bg-[#202022] border border-[#48484A] focus:outline-none focus:border-[#0A84FF] focus:ring-[3px] focus:ring-[#0A84FF]/25 cursor-pointer"
+              className="w-full h-10 px-3 rounded-lg text-[14px] text-[var(--color-text)] bg-[var(--color-surface-2)] border border-[var(--color-border-strong)] focus:outline-none focus:border-[var(--color-primary)] focus:ring-[3px] focus:ring-[var(--color-primary)]/25 cursor-pointer"
             >
               <option value="Low">Low</option>
               <option value="Medium">Medium</option>
@@ -189,7 +189,7 @@ export default function MaintenanceDesk() {
             />
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#38383A]">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[var(--color-border)]">
             <Button variant="ghost" onClick={() => setIsModalOpen(false)}>
               Cancel
             </Button>

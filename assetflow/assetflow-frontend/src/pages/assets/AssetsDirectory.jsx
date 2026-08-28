@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Plus, Search } from 'lucide-react';
-import { 
-  useGetAssetsQuery, 
-  useCreateAssetMutation, 
-  useGetCategoriesQuery, 
-  useUploadAttachmentMutation 
+import {
+  useGetAssetsQuery,
+  useCreateAssetMutation,
+  useGetCategoriesQuery,
+  useUploadAttachmentMutation
 } from '../../store/apiSlice';
 import FileUploadDropzone from '../../components/ui/FileUploadDropzone';
 import Button from '../../components/ui/Button';
@@ -17,20 +17,22 @@ const categories = ['All', 'Laptops', 'Projectors', 'Electronics', 'Furniture'];
 const statuses = ['All', 'Available', 'Allocated', 'Maintenance', 'Reserved'];
 const departments = ['All', 'IT Support', 'Human Resources', 'Engineering', 'Facilities'];
 
+const inputCls = "w-full h-10 px-3 rounded-lg text-[14px] text-[var(--color-text)] bg-[var(--color-surface-2)] border border-[var(--color-border-strong)] focus:outline-none focus:border-[var(--color-primary)] focus:ring-[3px] focus:ring-[var(--color-primary)]/25 transition-colors";
+
 export default function AssetsDirectory() {
   const { role } = useSelector(state => state.auth);
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
   const [departmentFilter, setDepartmentFilter] = useState('All');
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newAsset, setNewAsset] = useState({ 
-    name: '', 
-    categoryId: '', 
-    serialNumber: '', 
-    location: '', 
-    acquisitionDate: new Date().toISOString().split('T')[0] 
+  const [newAsset, setNewAsset] = useState({
+    name: '',
+    categoryId: '',
+    serialNumber: '',
+    location: '',
+    acquisitionDate: new Date().toISOString().split('T')[0]
   });
   const [photoFiles, setPhotoFiles] = useState([]);
   const [docFiles, setDocFiles] = useState([]);
@@ -39,10 +41,10 @@ export default function AssetsDirectory() {
   const { data: categoriesResponse } = useGetCategoriesQuery();
   const [createAsset, { isLoading: isCreating }] = useCreateAssetMutation();
   const [uploadAttachment, { isLoading: isUploading }] = useUploadAttachmentMutation();
-  
+
   const rawAssets = assetsResponse?.data || [];
   const dbCategories = categoriesResponse?.data || [];
-  
+
   const mappedAssets = useMemo(() => {
     return rawAssets.map(a => {
       const categoryObj = dbCategories.find(c => c.id === a.category_id);
@@ -79,7 +81,7 @@ export default function AssetsDirectory() {
     try {
       const createdAssetResponse = await createAsset(newAsset).unwrap();
       const assetId = createdAssetResponse.data?.id || createdAssetResponse.id;
-      
+
       const allFiles = [...photoFiles, ...docFiles];
       if (assetId && allFiles.length > 0) {
         for (const file of allFiles) {
@@ -92,12 +94,12 @@ export default function AssetsDirectory() {
       }
 
       setIsModalOpen(false);
-      setNewAsset({ 
-        name: '', 
-        categoryId: '', 
-        serialNumber: '', 
-        location: '', 
-        acquisitionDate: new Date().toISOString().split('T')[0] 
+      setNewAsset({
+        name: '',
+        categoryId: '',
+        serialNumber: '',
+        location: '',
+        acquisitionDate: new Date().toISOString().split('T')[0]
       });
       setPhotoFiles([]);
       setDocFiles([]);
@@ -138,7 +140,7 @@ export default function AssetsDirectory() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by tag, serial, or name..."
-            className="w-full h-10 bg-[var(--color-surface-2)] border border-[var(--color-border-strong)] rounded-lg pl-9 pr-3 text-[14px] text-[var(--color-text)] placeholder-[var(--color-text-tertiary)] focus:outline-none focus:border-[var(--color-primary)] focus:ring-[3px] focus:ring-[var(--color-primary)]/25 transition-colors"
+            className="w-full h-10 bg-[var(--color-surface-2)] border border-[var(--color-border-strong)] rounded-lg pl-9 pr-3 text-[14px] text-[var(--color-text)] placeholder:text-[var(--color-text-tertiary)] focus:outline-none focus:border-[var(--color-primary)] focus:ring-[3px] focus:ring-[var(--color-primary)]/25 transition-colors"
           />
         </div>
 
@@ -219,7 +221,7 @@ export default function AssetsDirectory() {
               required
               value={newAsset.categoryId}
               onChange={e => setNewAsset({ ...newAsset, categoryId: e.target.value })}
-              className="w-full h-10 px-3 rounded-lg text-[14px] text-[var(--color-text)] bg-[var(--color-surface-2)] border border-[var(--color-border-strong)] focus:outline-none focus:border-[var(--color-primary)] focus:ring-[3px] focus:ring-[var(--color-primary)]/25"
+              className={inputCls}
             >
               <option value="">Select Category</option>
               {dbCategories.map(c => (
@@ -255,18 +257,18 @@ export default function AssetsDirectory() {
           />
 
           <div className="pt-1">
-            <FileUploadDropzone 
-              onFilesChange={setPhotoFiles} 
-              maxFiles={1} 
+            <FileUploadDropzone
+              onFilesChange={setPhotoFiles}
+              maxFiles={1}
               label="Asset Photograph (Max 1)"
               acceptedTypes="image/jpeg,image/png"
             />
           </div>
 
           <div className="pt-1">
-            <FileUploadDropzone 
-              onFilesChange={setDocFiles} 
-              maxFiles={2} 
+            <FileUploadDropzone
+              onFilesChange={setDocFiles}
+              maxFiles={2}
               label="Related Documents (Max 2)"
             />
           </div>

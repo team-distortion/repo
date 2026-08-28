@@ -44,18 +44,18 @@ export default function ResourceBooking() {
     }
   };
 
-  if (isLoading) return <div className="text-[#98989D] text-[14px] p-8">Loading bookings...</div>;
-  if (error) return <div className="text-[#FF6961] text-[14px] p-8">Failed to load bookings.</div>;
+  if (isLoading) return <div className="text-[var(--color-text-secondary)] text-[14px] p-8">Loading bookings...</div>;
+  if (error) return <div className="text-[var(--color-error)] text-[14px] p-8">Failed to load bookings.</div>;
 
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-[36px] font-semibold leading-[1.15] text-[#F5F5F7] tracking-tight">
+          <h1 className="text-[36px] font-semibold leading-[1.15] text-[var(--color-text)] tracking-tight">
             Resource Booking
           </h1>
-          <p className="text-[14px] text-[#98989D] mt-1">
+          <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
             Reserve conference rooms, shared projectors, and company equipment
           </p>
         </div>
@@ -65,12 +65,12 @@ export default function ResourceBooking() {
         </Button>
       </div>
 
-      {/* Main Schedule View Card (§8 Cards) */}
+      {/* Main Schedule View Card */}
       <Card className="space-y-6">
-        <div className="flex items-center justify-between pb-4 border-b border-[#38383A]">
+        <div className="flex items-center justify-between pb-4 border-b border-[var(--color-border)]">
           <div className="flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-[#0A84FF]" strokeWidth={1.75} />
-            <h2 className="text-[18px] font-semibold text-[#F5F5F7] tracking-tight">
+            <Calendar className="w-5 h-5 text-[var(--color-primary)]" strokeWidth={1.75} />
+            <h2 className="text-[18px] font-semibold text-[var(--color-text)] tracking-tight">
               Daily Schedule View
             </h2>
           </div>
@@ -83,17 +83,17 @@ export default function ResourceBooking() {
             const hasBooking = bookings.length > 0 && idx < bookings.length;
 
             return (
-              <div key={time} className="grid grid-cols-[100px_1fr] items-center gap-4 py-2 border-b border-[#2C2C2E] last:border-b-0">
-                <span className="text-[13px] font-mono text-[#98989D]">{time}</span>
+              <div key={time} className="grid grid-cols-[100px_1fr] items-center gap-4 py-2 border-b border-[var(--color-border)] last:border-b-0">
+                <span className="text-[13px] font-mono text-[var(--color-text-secondary)]">{time}</span>
                 {hasBooking && activeBooking ? (
-                  <div className="h-10 px-4 rounded-lg bg-[#0A2A4D] border border-[#0A84FF]/50 flex items-center justify-between text-[#F5F5F7]">
+                  <div className="h-10 px-4 rounded-lg bg-[var(--color-primary-tint)] border border-[var(--color-primary)]/50 flex items-center justify-between text-[var(--color-text)]">
                     <span className="text-[14px] font-medium truncate">
                       {activeBooking.purpose || activeBooking.name || 'Team Reservation'}
                     </span>
-                    <span className="text-[12px] text-[#409CFF]">Booked</span>
+                    <span className="text-[12px] text-[var(--color-primary)]">Booked</span>
                   </div>
                 ) : (
-                  <div className="h-10 px-4 rounded-lg border border-dashed border-[#38383A] flex items-center text-[13px] text-[#6E6E73]">
+                  <div className="h-10 px-4 rounded-lg border border-dashed border-[var(--color-border-strong)] flex items-center text-[13px] text-[var(--color-text-tertiary)]">
                     Available for reservation
                   </div>
                 )}
@@ -103,7 +103,7 @@ export default function ResourceBooking() {
         </div>
       </Card>
 
-      {/* Book Slot Modal (§13 Modals) */}
+      {/* Book Slot Modal */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -112,14 +112,14 @@ export default function ResourceBooking() {
       >
         <form onSubmit={handleCreateBooking} className="space-y-4">
           <div className="space-y-1">
-            <label className="block text-[13px] font-medium text-[#98989D]">
+            <label className="block text-[13px] font-medium text-[var(--color-text-secondary)]">
               Resource
             </label>
             <select
               required
               value={newBooking.assetId}
               onChange={e => setNewBooking({ ...newBooking, assetId: e.target.value })}
-              className="w-full h-10 px-3 rounded-lg text-[14px] text-[#F5F5F7] bg-[#202022] border border-[#48484A] focus:outline-none focus:border-[#0A84FF] focus:ring-[3px] focus:ring-[#0A84FF]/25 cursor-pointer"
+              className="w-full h-10 px-3 rounded-lg text-[14px] text-[var(--color-text)] bg-[var(--color-surface-2)] border border-[var(--color-border-strong)] focus:outline-none focus:border-[var(--color-primary)] focus:ring-[3px] focus:ring-[var(--color-primary)]/25 cursor-pointer"
             >
               <option value="">Select Resource...</option>
               {sharedAssets.map(a => (
@@ -157,7 +157,7 @@ export default function ResourceBooking() {
             onChange={e => setNewBooking({ ...newBooking, purpose: e.target.value })}
           />
 
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#38383A]">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[var(--color-border)]">
             <Button variant="ghost" onClick={() => setIsModalOpen(false)}>
               Cancel
             </Button>

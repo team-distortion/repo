@@ -194,9 +194,11 @@ export default function EmployeeTab() {
     );
   });
 
+  const selectCls = "w-full h-10 px-3 rounded-lg text-[14px] text-[var(--color-text)] bg-[var(--color-surface-2)] border border-[var(--color-border-strong)] focus:outline-none focus:border-[var(--color-primary)] focus:ring-[3px] focus:ring-[var(--color-primary)]/25 cursor-pointer";
+
   if (loading && users.length === 0) {
     return (
-      <div className="p-16 text-center text-[#98989D] text-[14px]">
+      <div className="p-16 text-center text-[var(--color-text-secondary)] text-[14px]">
         Loading employee directory...
       </div>
     );
@@ -207,13 +209,13 @@ export default function EmployeeTab() {
       {/* Header controls */}
       <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between p-4 pb-0">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#98989D]" strokeWidth={1.75} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-secondary)]" strokeWidth={1.75} />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by name, email, dept..."
-            className="w-full h-10 bg-[#202022] border border-[#48484A] rounded-lg pl-9 pr-3 text-[14px] text-[#F5F5F7] placeholder-[#6E6E73] focus:outline-none focus:border-[#0A84FF] focus:ring-[3px] focus:ring-[#0A84FF]/25 transition-colors"
+            className="w-full h-10 bg-[var(--color-surface-2)] border border-[var(--color-border-strong)] rounded-lg pl-9 pr-3 text-[14px] text-[var(--color-text)] placeholder:text-[var(--color-text-tertiary)] focus:outline-none focus:border-[var(--color-primary)] focus:ring-[3px] focus:ring-[var(--color-primary)]/25 transition-colors"
           />
         </div>
 
@@ -223,37 +225,37 @@ export default function EmployeeTab() {
       </div>
 
       {error && (
-        <div className="p-4 mx-4 bg-[#330C0A] border border-[#FF453A]/40 text-[#FF6961] rounded-xl text-[13px]">
+        <div className="p-4 mx-4 bg-[var(--color-error-tint)] border border-[var(--color-error)]/40 text-[var(--color-error)] rounded-xl text-[13px]">
           {error}
         </div>
       )}
 
-      {/* Table Surface (§9 Tables) */}
+      {/* Table Surface */}
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse whitespace-nowrap">
           <thead>
-            <tr className="h-11 border-b border-[#38383A] bg-[#202022]">
-              <th className="px-4 text-[12px] font-medium text-[#98989D] uppercase tracking-wider">Employee Name</th>
-              <th className="px-4 text-[12px] font-medium text-[#98989D] uppercase tracking-wider">Email Address</th>
-              <th className="px-4 text-[12px] font-medium text-[#98989D] uppercase tracking-wider">Department</th>
-              <th className="px-4 text-[12px] font-medium text-[#98989D] uppercase tracking-wider">Role</th>
-              <th className="px-4 text-[12px] font-medium text-[#98989D] uppercase tracking-wider">Status</th>
-              <th className="px-4 text-[12px] font-medium text-[#98989D] uppercase tracking-wider text-right">Actions</th>
+            <tr className="h-11 border-b border-[var(--color-border)] bg-[var(--color-surface-2)]">
+              <th className="px-4 text-[12px] font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Employee Name</th>
+              <th className="px-4 text-[12px] font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Email Address</th>
+              <th className="px-4 text-[12px] font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Department</th>
+              <th className="px-4 text-[12px] font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Role</th>
+              <th className="px-4 text-[12px] font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Status</th>
+              <th className="px-4 text-[12px] font-medium text-[var(--color-text-secondary)] uppercase tracking-wider text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#38383A]">
+          <tbody className="divide-y divide-[var(--color-border)]">
             {filteredUsers.map((user) => (
-              <tr key={user.id || user.userId} className="h-14 hover:bg-[#202022] transition-colors">
-                <td className="px-4 text-[14px] font-medium text-[#F5F5F7]">
+              <tr key={user.id || user.userId} className="h-14 hover:bg-[var(--color-surface-2)] transition-colors">
+                <td className="px-4 text-[14px] font-medium text-[var(--color-text)]">
                   {user.name}
                 </td>
-                <td className="px-4 text-[13px] text-[#98989D]">
+                <td className="px-4 text-[13px] text-[var(--color-text-secondary)]">
                   {user.email}
                 </td>
-                <td className="px-4 text-[14px] text-[#98989D]">
+                <td className="px-4 text-[14px] text-[var(--color-text-secondary)]">
                   {getDeptName(user.departmentId)}
                 </td>
-                <td className="px-4 text-[13px] text-[#F5F5F7]">
+                <td className="px-4 text-[13px] text-[var(--color-text)]">
                   {user.role}
                 </td>
                 <td className="px-4">
@@ -263,14 +265,14 @@ export default function EmployeeTab() {
                   <div className="flex items-center justify-end gap-1">
                     <button
                       onClick={() => openEditModal(user)}
-                      className="p-1.5 text-[#98989D] hover:text-[#0A84FF] hover:bg-[#2C2C2E] rounded-lg transition-colors"
+                      className="p-1.5 text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] hover:bg-[var(--color-surface-3)] rounded-lg transition-colors"
                       title="Edit employee"
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleDeleteUser(user.id || user.userId)}
-                      className="p-1.5 text-[#98989D] hover:text-[#FF6961] hover:bg-[#2C2C2E] rounded-lg transition-colors"
+                      className="p-1.5 text-[var(--color-text-secondary)] hover:text-[var(--color-error)] hover:bg-[var(--color-surface-3)] rounded-lg transition-colors"
                       title="Delete employee"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -281,7 +283,7 @@ export default function EmployeeTab() {
             ))}
             {filteredUsers.length === 0 && (
               <tr>
-                <td colSpan={6} className="h-32 text-center text-[#6E6E73] text-[14px]">
+                <td colSpan={6} className="h-32 text-center text-[var(--color-text-tertiary)] text-[14px]">
                   No employees match your search query.
                 </td>
               </tr>
@@ -290,7 +292,7 @@ export default function EmployeeTab() {
         </table>
       </div>
 
-      {/* Add Modal (§13 Modals) */}
+      {/* Add Modal */}
       <Modal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
@@ -299,53 +301,18 @@ export default function EmployeeTab() {
       >
         <form onSubmit={handleAddSubmit} className="space-y-4">
           {formError && (
-            <div className="p-3 bg-[#330C0A] border border-[#FF453A]/40 text-[#FF6961] rounded-lg text-[13px]">
+            <div className="p-3 bg-[var(--color-error-tint)] border border-[var(--color-error)]/40 text-[var(--color-error)] rounded-lg text-[13px]">
               {formError}
             </div>
           )}
 
-          <Input
-            id="emp-name"
-            label="Full Name"
-            name="name"
-            required
-            value={formData.name}
-            onChange={handleInputChange}
-            placeholder="e.g. Jane Doe"
-          />
-
-          <Input
-            id="emp-email"
-            label="Email Address"
-            type="email"
-            name="email"
-            required
-            value={formData.email}
-            onChange={handleInputChange}
-            placeholder="e.g. jane.doe@company.com"
-          />
-
-          <Input
-            id="emp-password"
-            label="Initial Password"
-            type="password"
-            name="password"
-            required
-            value={formData.password}
-            onChange={handleInputChange}
-            helperText="At least 8 chars with uppercase, lowercase, and numbers."
-          />
+          <Input id="emp-name" label="Full Name" name="name" required value={formData.name} onChange={handleInputChange} placeholder="e.g. Jane Doe" />
+          <Input id="emp-email" label="Email Address" type="email" name="email" required value={formData.email} onChange={handleInputChange} placeholder="e.g. jane.doe@company.com" />
+          <Input id="emp-password" label="Initial Password" type="password" name="password" required value={formData.password} onChange={handleInputChange} helperText="At least 8 chars with uppercase, lowercase, and numbers." />
 
           <div className="space-y-1">
-            <label className="block text-[13px] font-medium text-[#98989D]">
-              Department
-            </label>
-            <select
-              name="departmentId"
-              value={formData.departmentId}
-              onChange={handleInputChange}
-              className="w-full h-10 px-3 rounded-lg text-[14px] text-[#F5F5F7] bg-[#202022] border border-[#48484A] focus:outline-none focus:border-[#0A84FF] focus:ring-[3px] focus:ring-[#0A84FF]/25 cursor-pointer"
-            >
+            <label className="block text-[13px] font-medium text-[var(--color-text-secondary)]">Department</label>
+            <select name="departmentId" value={formData.departmentId} onChange={handleInputChange} className={selectCls}>
               <option value="">Unassigned</option>
               {departments.map((d) => (
                 <option key={d.id} value={d.id}>{d.name}</option>
@@ -355,32 +322,17 @@ export default function EmployeeTab() {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="block text-[13px] font-medium text-[#98989D]">
-                Role
-              </label>
-              <select
-                name="role"
-                value={formData.role}
-                onChange={handleInputChange}
-                className="w-full h-10 px-3 rounded-lg text-[14px] text-[#F5F5F7] bg-[#202022] border border-[#48484A] focus:outline-none focus:border-[#0A84FF] focus:ring-[3px] focus:ring-[#0A84FF]/25 cursor-pointer"
-              >
+              <label className="block text-[13px] font-medium text-[var(--color-text-secondary)]">Role</label>
+              <select name="role" value={formData.role} onChange={handleInputChange} className={selectCls}>
                 <option value="Employee">Employee</option>
                 <option value="DepartmentHead">Department Head</option>
                 <option value="AssetManager">Asset Manager</option>
                 <option value="Admin">Admin</option>
               </select>
             </div>
-
             <div className="space-y-1">
-              <label className="block text-[13px] font-medium text-[#98989D]">
-                Status
-              </label>
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleInputChange}
-                className="w-full h-10 px-3 rounded-lg text-[14px] text-[#F5F5F7] bg-[#202022] border border-[#48484A] focus:outline-none focus:border-[#0A84FF] focus:ring-[3px] focus:ring-[#0A84FF]/25 cursor-pointer"
-              >
+              <label className="block text-[13px] font-medium text-[var(--color-text-secondary)]">Status</label>
+              <select name="status" value={formData.status} onChange={handleInputChange} className={selectCls}>
                 <option value="Active">Active</option>
                 <option value="Inactive">Inactive</option>
                 <option value="Suspended">Suspended</option>
@@ -388,10 +340,8 @@ export default function EmployeeTab() {
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#38383A]">
-            <Button variant="ghost" onClick={() => setIsAddModalOpen(false)}>
-              Cancel
-            </Button>
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[var(--color-border)]">
+            <Button variant="ghost" onClick={() => setIsAddModalOpen(false)}>Cancel</Button>
             <Button type="submit" variant="primary" disabled={formSubmitting}>
               {formSubmitting ? 'Creating...' : 'Create Employee'}
             </Button>
@@ -408,50 +358,18 @@ export default function EmployeeTab() {
       >
         <form onSubmit={handleEditSubmit} className="space-y-4">
           {formError && (
-            <div className="p-3 bg-[#330C0A] border border-[#FF453A]/40 text-[#FF6961] rounded-lg text-[13px]">
+            <div className="p-3 bg-[var(--color-error-tint)] border border-[var(--color-error)]/40 text-[var(--color-error)] rounded-lg text-[13px]">
               {formError}
             </div>
           )}
 
-          <Input
-            id="edit-emp-name"
-            label="Full Name"
-            name="name"
-            required
-            value={formData.name}
-            onChange={handleInputChange}
-          />
-
-          <Input
-            id="edit-emp-email"
-            label="Email Address"
-            type="email"
-            name="email"
-            required
-            value={formData.email}
-            onChange={handleInputChange}
-          />
-
-          <Input
-            id="edit-emp-password"
-            label="Reset Password (Optional)"
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleInputChange}
-            placeholder="Leave blank to keep existing password"
-          />
+          <Input id="edit-emp-name" label="Full Name" name="name" required value={formData.name} onChange={handleInputChange} />
+          <Input id="edit-emp-email" label="Email Address" type="email" name="email" required value={formData.email} onChange={handleInputChange} />
+          <Input id="edit-emp-password" label="Reset Password (Optional)" type="password" name="password" value={formData.password} onChange={handleInputChange} placeholder="Leave blank to keep existing password" />
 
           <div className="space-y-1">
-            <label className="block text-[13px] font-medium text-[#98989D]">
-              Department
-            </label>
-            <select
-              name="departmentId"
-              value={formData.departmentId}
-              onChange={handleInputChange}
-              className="w-full h-10 px-3 rounded-lg text-[14px] text-[#F5F5F7] bg-[#202022] border border-[#48484A] focus:outline-none focus:border-[#0A84FF] focus:ring-[3px] focus:ring-[#0A84FF]/25 cursor-pointer"
-            >
+            <label className="block text-[13px] font-medium text-[var(--color-text-secondary)]">Department</label>
+            <select name="departmentId" value={formData.departmentId} onChange={handleInputChange} className={selectCls}>
               <option value="">Unassigned</option>
               {departments.map((d) => (
                 <option key={d.id} value={d.id}>{d.name}</option>
@@ -461,32 +379,17 @@ export default function EmployeeTab() {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="block text-[13px] font-medium text-[#98989D]">
-                Role
-              </label>
-              <select
-                name="role"
-                value={formData.role}
-                onChange={handleInputChange}
-                className="w-full h-10 px-3 rounded-lg text-[14px] text-[#F5F5F7] bg-[#202022] border border-[#48484A] focus:outline-none focus:border-[#0A84FF] focus:ring-[3px] focus:ring-[#0A84FF]/25 cursor-pointer"
-              >
+              <label className="block text-[13px] font-medium text-[var(--color-text-secondary)]">Role</label>
+              <select name="role" value={formData.role} onChange={handleInputChange} className={selectCls}>
                 <option value="Employee">Employee</option>
                 <option value="DepartmentHead">Department Head</option>
                 <option value="AssetManager">Asset Manager</option>
                 <option value="Admin">Admin</option>
               </select>
             </div>
-
             <div className="space-y-1">
-              <label className="block text-[13px] font-medium text-[#98989D]">
-                Status
-              </label>
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleInputChange}
-                className="w-full h-10 px-3 rounded-lg text-[14px] text-[#F5F5F7] bg-[#202022] border border-[#48484A] focus:outline-none focus:border-[#0A84FF] focus:ring-[3px] focus:ring-[#0A84FF]/25 cursor-pointer"
-              >
+              <label className="block text-[13px] font-medium text-[var(--color-text-secondary)]">Status</label>
+              <select name="status" value={formData.status} onChange={handleInputChange} className={selectCls}>
                 <option value="Active">Active</option>
                 <option value="Inactive">Inactive</option>
                 <option value="Suspended">Suspended</option>
@@ -494,10 +397,8 @@ export default function EmployeeTab() {
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#38383A]">
-            <Button variant="ghost" onClick={() => setIsEditModalOpen(false)}>
-              Cancel
-            </Button>
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[var(--color-border)]">
+            <Button variant="ghost" onClick={() => setIsEditModalOpen(false)}>Cancel</Button>
             <Button type="submit" variant="primary" disabled={formSubmitting}>
               {formSubmitting ? 'Updating...' : 'Save Changes'}
             </Button>

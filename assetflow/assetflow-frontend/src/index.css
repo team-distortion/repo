@@ -71,6 +71,43 @@
   --color-error-tint: #33160F;
 }
 
+html[data-theme="light"] {
+  /* Backgrounds — all cool-neutral, almost identical tones so layers barely separate */
+  --color-bg:        #F4F6F8;   /* gentle blue-gray base — feels open, not heavy */
+  --color-surface:   #FAFBFC;   /* surface cards — barely lighter than bg */
+  --color-surface-2: #EFF1F3;   /* subtle hover / input bg */
+  --color-surface-3: #E6E9EC;   /* dividers, sidebar active, table stripes */
+
+  /* Typography — cool dark slate, balanced contrast */
+  --color-text:           #1C2B35;   /* near-black with a cool teal undertone */
+  --color-text-secondary: #526370;   /* medium slate — secondary labels */
+  --color-text-tertiary:  #8299A6;   /* light — captions, placeholders */
+  --color-text-disabled:  #B8C8D0;   /* disabled */
+
+  /* Borders — whisper-thin, barely visible */
+  --color-border:       #DDE2E7;   /* default border */
+  --color-border-strong:#C5CDD4;   /* input/table border */
+
+  /* Primary — teal from palette (unchanged) */
+  --color-primary:       #249D8F;
+  --color-primary-hover: #2CB5A5;
+  --color-primary-active:#1D8075;
+  --color-primary-tint:  #E6F6F4;   /* teal tint for badges/chips */
+
+  /* Warning — golden, darkened for legibility on light bg */
+  --color-warning:      #C8921A;
+  --color-warning-tint: #FBF5E6;
+
+  /* Error / Coral — from palette, darkened for legibility */
+  --color-error:      #C75A3E;
+  --color-error-tint: #FCF0ED;
+
+  /* Shadows — soft tinted (not heavy black) for light mode */
+  --shadow-sm: 0 2px 8px rgba(28, 43, 53, 0.08);
+  --shadow-md: 0 4px 16px rgba(28, 43, 53, 0.10);
+  --shadow-lg: 0 8px 32px rgba(28, 43, 53, 0.12);
+}
+
 @layer base {
   * {
     border-color: var(--color-border);
@@ -140,17 +177,17 @@
   color: var(--color-text-secondary);
 }
 
-/* Elevated Shadows (§6) */
+/* Elevated Shadows (§6) — dark mode default, light mode overrides via variables */
 .shadow-surface-sm {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.40);
+  box-shadow: var(--shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.40));
 }
 
 .shadow-surface-md {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.50);
+  box-shadow: var(--shadow-md, 0 8px 24px rgba(0, 0, 0, 0.50));
 }
 
 .shadow-surface-lg {
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.60);
+  box-shadow: var(--shadow-lg, 0 16px 48px rgba(0, 0, 0, 0.60));
 }
 
 /* Custom Scrollbar for Dark Background */

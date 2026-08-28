@@ -25,7 +25,7 @@ export default function ReportsAnalytics() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-[36px] font-semibold leading-[1.15] text-[var(--color-text)] tracking-tight">
-            Reports & Analytics
+            Reports &amp; Analytics
           </h1>
           <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
             Department equipment utilization, maintenance frequencies, and lifecycle projections
@@ -46,9 +46,9 @@ export default function ReportsAnalytics() {
           <div className="flex-1 flex items-end gap-4 px-2 pb-2">
             {utilizationBars.map((height, index) => (
               <div key={index} className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
-                <div 
-                  className="w-full max-w-10 rounded-t-lg bg-[var(--color-primary)] transition-all hover:bg-[var(--color-primary-hover)]" 
-                  style={{ height: `${height}%` }} 
+                <div
+                  className="w-full max-w-10 rounded-t-lg bg-[var(--color-primary)] transition-all hover:bg-[var(--color-primary-hover)]"
+                  style={{ height: `${height}%` }}
                 />
                 <span className="text-[12px] font-mono text-[var(--color-text-secondary)]">D{index + 1}</span>
               </div>
@@ -62,14 +62,14 @@ export default function ReportsAnalytics() {
           </h2>
           <div className="flex-1 px-2 pb-2">
             <svg viewBox="0 0 280 120" className="h-full w-full overflow-visible">
-              <path d="M 0 104 L 280 104" stroke="var(--color-border)" strokeWidth="1" />
-              <polyline 
-                points={linePoints} 
-                fill="none" 
-                stroke="var(--color-warning)" 
-                strokeWidth="2.5" 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
+              <path d="M 0 104 L 280 104" stroke="var(--color-border-strong)" strokeWidth="1" />
+              <polyline
+                points={linePoints}
+                fill="none"
+                stroke="var(--color-warning)"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
             </svg>
           </div>
@@ -84,7 +84,7 @@ export default function ReportsAnalytics() {
           </h2>
           <div className="space-y-2 text-[14px]">
             {mostUsedAssets.map((asset, idx) => (
-              <div key={idx} className="flex items-center gap-3 text-[var(--color-text)] py-1 border-b border-[var(--color-surface-3)] last:border-b-0">
+              <div key={idx} className="flex items-center gap-3 text-[var(--color-text)] py-1 border-b border-[var(--color-border)] last:border-b-0">
                 <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-primary)] flex-shrink-0" />
                 <span>{asset}</span>
               </div>
@@ -98,7 +98,7 @@ export default function ReportsAnalytics() {
           </h2>
           <div className="space-y-2 text-[14px]">
             {idleAssets.map((asset, idx) => (
-              <div key={idx} className="flex items-center gap-3 text-[var(--color-text-secondary)] py-1 border-b border-[var(--color-surface-3)] last:border-b-0">
+              <div key={idx} className="flex items-center gap-3 text-[var(--color-text-secondary)] py-1 border-b border-[var(--color-border)] last:border-b-0">
                 <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-text-tertiary)] flex-shrink-0" />
                 <span>{asset}</span>
               </div>
@@ -110,11 +110,11 @@ export default function ReportsAnalytics() {
       {/* Maintenance Projections Card */}
       <Card className="space-y-3">
         <h2 className="text-[18px] font-semibold text-[var(--color-text)] tracking-tight">
-          Assets Due for Maintenance & Lifecycle Reviews
+          Assets Due for Maintenance &amp; Lifecycle Reviews
         </h2>
         <div className="space-y-2 text-[14px]">
           {maintenanceDue.map((asset, idx) => (
-            <div key={idx} className="flex items-center gap-3 text-[var(--color-warning)] py-1.5 border-b border-[var(--color-surface-3)] last:border-b-0">
+            <div key={idx} className="flex items-center gap-3 text-[var(--color-warning)] py-1.5 border-b border-[var(--color-border)] last:border-b-0">
               <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-warning)] flex-shrink-0" />
               <span>{asset}</span>
             </div>

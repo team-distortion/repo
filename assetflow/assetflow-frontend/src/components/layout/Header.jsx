@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../../store/authSlice';
-import { Bell, ChevronRight, LogOut, User } from 'lucide-react';
+import { Bell, ChevronRight, LogOut, User, Sun, Moon } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useGetNotificationsQuery } from '../../store/apiSlice';
 
@@ -10,7 +10,17 @@ export default function Header() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
   const notificationsRef = useRef(null);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(t => t === 'dark' ? 'light' : 'dark');
+  };
 
   const { data: notificationsData } = useGetNotificationsQuery(undefined, {
     pollingInterval: 15000,
@@ -45,6 +55,21 @@ export default function Header() {
       </div>
       
       <div className="flex items-center gap-4">
+        {/* Theme Switcher Toggle */}
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className="w-9 h-9 flex items-center justify-center rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-2)] transition-colors"
+          title={theme === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
+          aria-label="Toggle Theme"
+        >
+          {theme === 'dark' ? (
+            <Sun className="w-[18px] h-[18px] text-[var(--color-warning)]" strokeWidth={1.75} />
+          ) : (
+            <Moon className="w-[18px] h-[18px]" strokeWidth={1.75} />
+          )}
+        </button>
+
         {/* Notifications Dropdown */}
         <div ref={notificationsRef} className="relative">
           <button

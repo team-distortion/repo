@@ -20,7 +20,7 @@ export default function Button({
   } else {
     switch (variant) {
       case 'primary':
-        variantClasses = 'bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] active:bg-[var(--color-primary-active)] text-[#000000] font-semibold border-none shadow-surface-sm';
+        variantClasses = 'bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] active:bg-[var(--color-primary-active)] text-white font-semibold border-none shadow-surface-sm';
         break;
       case 'secondary':
         variantClasses = 'bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] active:bg-[var(--color-surface)] text-[var(--color-text)] border border-[var(--color-border-strong)]';
@@ -32,7 +32,7 @@ export default function Button({
         variantClasses = 'bg-transparent hover:bg-[var(--color-surface-2)] active:bg-[var(--color-surface-3)] text-[var(--color-text-secondary)] hover:text-[var(--color-text)] border-none';
         break;
       default:
-        variantClasses = 'bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-[#000000] font-semibold';
+        variantClasses = 'bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white font-semibold';
     }
   }
 

@@ -65,7 +65,7 @@ export default function FileUploadDropzone({
 
   return (
     <div className="w-full space-y-2">
-      <label className="block text-[13px] font-medium text-[#98989D]">
+      <label className="block text-[13px] font-medium text-[var(--color-text-secondary)]">
         {label || `Attachments (Max ${maxFiles})`}
       </label>
       
@@ -76,13 +76,13 @@ export default function FileUploadDropzone({
           onDrop={handleDrop}
           className={`border border-dashed rounded-xl p-5 text-center transition-colors ${
             isDragOver 
-              ? 'border-[#0A84FF] bg-[#0A2A4D]/30' 
-              : 'border-[#48484A] bg-[#202022] hover:border-[#98989D]'
+              ? 'border-[var(--color-primary)] bg-[var(--color-primary-tint)]' 
+              : 'border-[var(--color-border-strong)] bg-[var(--color-surface-2)] hover:border-[var(--color-text-secondary)]'
           }`}
         >
-          <UploadCloud className="w-6 h-6 text-[#98989D] mx-auto mb-1.5" strokeWidth={1.75} />
-          <p className="text-[13px] text-[#F5F5F7]">Drag and drop files here, or</p>
-          <label className="inline-block mt-1 cursor-pointer text-[13px] text-[#0A84FF] hover:underline font-medium">
+          <UploadCloud className="w-6 h-6 text-[var(--color-text-secondary)] mx-auto mb-1.5" strokeWidth={1.75} />
+          <p className="text-[13px] text-[var(--color-text)]">Drag and drop files here, or</p>
+          <label className="inline-block mt-1 cursor-pointer text-[13px] text-[var(--color-primary)] hover:underline font-medium">
             Browse Files
             <input 
               type="file" 
@@ -92,30 +92,30 @@ export default function FileUploadDropzone({
               className="hidden" 
             />
           </label>
-          <p className="text-[12px] text-[#6E6E73] mt-1">JPG, PNG, PDF up to 5MB</p>
+          <p className="text-[12px] text-[var(--color-text-tertiary)] mt-1">JPG, PNG, PDF up to 5MB</p>
         </div>
       )}
       
-      {error && <p className="text-[#FF6961] text-[12px] mt-1">{error}</p>}
+      {error && <p className="text-[var(--color-error)] text-[12px] mt-1">{error}</p>}
 
       {selectedFiles.length > 0 && (
         <ul className="space-y-2 mt-2">
           {selectedFiles.map((file, idx) => (
-            <li key={`${file.name}-${idx}`} className="flex items-center justify-between p-2.5 bg-[#202022] rounded-lg border border-[#38383A]">
+            <li key={`${file.name}-${idx}`} className="flex items-center justify-between p-2.5 bg-[var(--color-surface-2)] rounded-lg border border-[var(--color-border)]">
               <div className="flex items-center space-x-2.5 overflow-hidden">
                 {file.type.startsWith('image/') ? (
-                  <ImageIcon className="w-4 h-4 text-[#32D74B] shrink-0" strokeWidth={1.75} />
+                  <ImageIcon className="w-4 h-4 text-[var(--color-primary)] shrink-0" strokeWidth={1.75} />
                 ) : (
-                  <File className="w-4 h-4 text-[#0A84FF] shrink-0" strokeWidth={1.75} />
+                  <File className="w-4 h-4 text-[var(--color-primary)] shrink-0" strokeWidth={1.75} />
                 )}
-                <span className="text-[13px] text-[#F5F5F7] truncate" title={file.name}>
+                <span className="text-[13px] text-[var(--color-text)] truncate" title={file.name}>
                   {file.name}
                 </span>
               </div>
               <button 
                 type="button" 
                 onClick={() => removeFile(idx)}
-                className="text-[#98989D] hover:text-[#FF6961] transition-colors p-1"
+                className="text-[var(--color-text-secondary)] hover:text-[var(--color-error)] transition-colors p-1"
                 aria-label="Remove attachment"
               >
                 <X className="w-4 h-4" />

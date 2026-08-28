@@ -1,16 +1,18 @@
 import { useState, useMemo, useEffect } from 'react';
 import { AlertCircle, Send } from 'lucide-react';
-import { 
-  useGetAssetsQuery, 
-  useGetUsersQuery, 
-  useCreateTransferMutation, 
-  useGetAllocationsQuery, 
-  useGetDepartmentsQuery, 
-  useGetTransfersQuery, 
-  useCreateAllocationMutation 
+import {
+  useGetAssetsQuery,
+  useGetUsersQuery,
+  useCreateTransferMutation,
+  useGetAllocationsQuery,
+  useGetDepartmentsQuery,
+  useGetTransfersQuery,
+  useCreateAllocationMutation
 } from '../../store/apiSlice';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
+
+const selectCls = "w-full h-10 px-3 rounded-lg text-[14px] text-[var(--color-text)] bg-[var(--color-surface-2)] border border-[var(--color-border-strong)] focus:outline-none focus:border-[var(--color-primary)] focus:ring-[3px] focus:ring-[var(--color-primary)]/25 cursor-pointer transition-colors";
 
 export default function AllocationTransfer() {
   const [selectedAssetId, setSelectedAssetId] = useState('');
@@ -26,7 +28,7 @@ export default function AllocationTransfer() {
   const { data: transfersRes } = useGetTransfersQuery({ pageSize: 100 });
   const [createTransfer, { isLoading: isTransferLoading }] = useCreateTransferMutation();
   const [createAllocation, { isLoading: isAllocLoading }] = useCreateAllocationMutation();
-  
+
   const isLoading = isTransferLoading || isAllocLoading;
 
   const assets = assetsRes?.data || [];
@@ -37,21 +39,21 @@ export default function AllocationTransfer() {
 
   const displayAssets = assets.length > 0 ? assets : [{ id: 'mock-1', tag: 'AF-0114', name: 'Dell laptop', status: 'Available' }];
   const selectedAsset = displayAssets.find((a) => a.id === (selectedAssetId || displayAssets[0]?.id)) || displayAssets[0];
-  
+
   const isBlocked = selectedAsset?.status === 'Allocated';
 
   const assetHistory = useMemo(() => {
     if (!selectedAsset || selectedAsset.id === 'mock-1') return [];
-    
+
     const assetAllocs = allocations.filter(a => a.asset_id === selectedAsset.id);
     const assetTransfers = transfers.filter(t => t.asset_id === selectedAsset.id);
     const history = [];
-    
+
     assetAllocs.forEach(alloc => {
       const assignedUser = users.find(u => u.id === alloc.assigned_user_id) || { name: 'Unknown User' };
       const dept = departments.find(d => d.id === alloc.assigned_dept_id || d.id === assignedUser.departmentId);
       const deptName = dept ? dept.name : 'Unassigned';
-      
+
       if (alloc.returned_at) {
         history.push({
           timestamp: new Date(alloc.returned_at).getTime(),
@@ -59,7 +61,7 @@ export default function AllocationTransfer() {
           text: `Returned by ${assignedUser.name} — condition: ${alloc.condition_check_in_notes || 'good'}`
         });
       }
-      
+
       history.push({
         timestamp: new Date(alloc.created_at).getTime(),
         date: new Date(alloc.created_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit' }),
@@ -76,7 +78,7 @@ export default function AllocationTransfer() {
         text: `Transfer request submitted for ${toUser.name} ${statusText}`
       });
     });
-    
+
     return history.sort((a, b) => b.timestamp - a.timestamp);
   }, [allocations, transfers, selectedAsset, users, departments]);
 
@@ -101,7 +103,7 @@ export default function AllocationTransfer() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!transferToId || !reason.trim() || !selectedAsset) return;
-    
+
     try {
       if (isBlocked) {
         await createTransfer({
@@ -119,7 +121,7 @@ export default function AllocationTransfer() {
           notes: reason
         }).unwrap();
       }
-      
+
       setSubmitted(true);
       setTimeout(() => setSubmitted(false), 3000);
       setTransferToId('');
@@ -134,7 +136,7 @@ export default function AllocationTransfer() {
       {/* Page Title */}
       <div>
         <h1 className="text-[36px] font-semibold leading-[1.15] text-[var(--color-text)] tracking-tight">
-          Allocation & Transfer
+          Allocation &amp; Transfer
         </h1>
         <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
           Manage equipment assignments, department handoffs, and transfer approvals
@@ -155,7 +157,7 @@ export default function AllocationTransfer() {
               setReason('');
               setSubmitted(false);
             }}
-            className="w-full h-10 px-3 rounded-lg text-[14px] text-[var(--color-text)] bg-[var(--color-surface-2)] border border-[var(--color-border-strong)] focus:outline-none focus:border-[var(--color-primary)] focus:ring-[3px] focus:ring-[var(--color-primary)]/25 cursor-pointer"
+            className={selectCls}
           >
             {displayAssets.map((asset) => (
               <option key={asset.id} value={asset.id}>
@@ -194,7 +196,7 @@ export default function AllocationTransfer() {
                 value={transferFromId}
                 disabled={isBlocked}
                 onChange={(e) => setTransferFromId(e.target.value)}
-                className="w-full h-10 px-3 rounded-lg text-[14px] text-[var(--color-text)] bg-[var(--color-surface-2)] border border-[var(--color-border-strong)] focus:outline-none focus:border-[var(--color-primary)] focus:ring-[3px] focus:ring-[var(--color-primary)]/25 disabled:bg-[var(--color-surface)] disabled:text-[var(--color-text-disabled)] disabled:border-[var(--color-border)]"
+                className={`${selectCls} disabled:opacity-50 disabled:cursor-not-allowed`}
               >
                 <option value="">None / Storage</option>
                 {users.map((emp) => (
@@ -213,7 +215,7 @@ export default function AllocationTransfer() {
                 required
                 value={transferToId}
                 onChange={(e) => setTransferToId(e.target.value)}
-                className="w-full h-10 px-3 rounded-lg text-[14px] text-[var(--color-text)] bg-[var(--color-surface-2)] border border-[var(--color-border-strong)] focus:outline-none focus:border-[var(--color-primary)] focus:ring-[3px] focus:ring-[var(--color-primary)]/25 cursor-pointer"
+                className={selectCls}
               >
                 <option value="">Select Recipient Employee...</option>
                 {users.filter(emp => emp.id !== transferFromId).map((emp) => (
@@ -235,7 +237,7 @@ export default function AllocationTransfer() {
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="Describe the operational reason for this assignment..."
-              className="w-full p-3 rounded-lg text-[14px] text-[var(--color-text)] placeholder-[var(--color-text-tertiary)] bg-[var(--color-surface-2)] border border-[var(--color-border-strong)] focus:outline-none focus:border-[var(--color-primary)] focus:ring-[3px] focus:ring-[var(--color-primary)]/25 resize-none transition-colors"
+              className="w-full p-3 rounded-lg text-[14px] text-[var(--color-text)] placeholder:text-[var(--color-text-tertiary)] bg-[var(--color-surface-2)] border border-[var(--color-border-strong)] focus:outline-none focus:border-[var(--color-primary)] focus:ring-[3px] focus:ring-[var(--color-primary)]/25 resize-none transition-colors"
             />
           </div>
 
@@ -266,7 +268,7 @@ export default function AllocationTransfer() {
         <div className="space-y-3">
           {assetHistory.length > 0 ? (
             assetHistory.map((entry, i) => (
-              <div key={i} className="flex items-center gap-3 text-[14px] text-[var(--color-text-secondary)] py-1 border-b border-[var(--color-surface-3)] last:border-b-0">
+              <div key={i} className="flex items-center gap-3 text-[14px] text-[var(--color-text-secondary)] py-1 border-b border-[var(--color-border)] last:border-b-0">
                 <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-primary)] flex-shrink-0" />
                 <p className="leading-relaxed">
                   <span className="text-[var(--color-text-tertiary)] font-mono text-[13px] mr-2">{entry.date}</span>

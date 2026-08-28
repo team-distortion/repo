@@ -32,30 +32,30 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg)] p-4 text-[var(--color-text)]">
-      <div className="w-full max-w-[420px] bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[20px] p-8 shadow-surface-lg space-y-6 animate-in fade-in zoom-in-95 duration-200">
-        
+    <div className="min-h-screen flex items-center justify-center bg-[#000000] p-4 text-[#FDF0D5]">
+      <div className="w-full max-w-[420px] bg-[#1C1C1E] border border-[#38383A] rounded-[20px] p-8 shadow-[0_16px_48px_rgba(0,0,0,0.60)] space-y-6 animate-in fade-in zoom-in-95 duration-200">
+
         {/* Brand Header */}
         <div className="flex flex-col items-center text-center space-y-2">
-          <div className="w-12 h-12 rounded-xl bg-[var(--color-surface-2)] border border-[var(--color-border)] flex items-center justify-center text-[var(--color-primary)] mb-1">
+          <div className="w-12 h-12 rounded-xl bg-[#202022] border border-[#38383A] flex items-center justify-center text-[#249D8F] mb-1">
             <Package className="w-6 h-6" strokeWidth={1.75} />
           </div>
-          <h1 className="text-[28px] font-semibold leading-[1.2] text-[var(--color-text)] tracking-tight">
+          <h1 className="text-[28px] font-semibold leading-[1.2] text-[#FDF0D5] tracking-tight">
             AssetFlow
           </h1>
-          <p className="text-[14px] text-[var(--color-text-secondary)]">
+          <p className="text-[14px] text-[#C2B79E]">
             Sign in to manage organizational assets
           </p>
         </div>
 
         {successMessage && (
-          <div className="p-3 bg-[var(--color-primary-tint)] border border-[var(--color-primary)]/40 text-[var(--color-primary)] rounded-lg text-[13px]">
+          <div className="p-3 bg-[#0B2D29] border border-[#249D8F]/40 text-[#249D8F] rounded-lg text-[13px]">
             {successMessage}
           </div>
         )}
 
         {loginError && (
-          <div className="p-3 bg-[var(--color-error-tint)] border border-[var(--color-error)]/40 text-[var(--color-error)] rounded-lg text-[13px]">
+          <div className="p-3 bg-[#33160F] border border-[#E76F51]/40 text-[#E76F51] rounded-lg text-[13px]">
             {loginError.data?.error?.message || loginError.data?.message || 'Invalid email or password.'}
           </div>
         )}
@@ -73,10 +73,10 @@ export default function Login() {
 
           <div className="space-y-1">
             <div className="flex justify-between items-center">
-              <label htmlFor="login-password" className="block text-[13px] font-medium text-[var(--color-text-secondary)]">
+              <label htmlFor="login-password" className="block text-[13px] font-medium text-[#C2B79E]">
                 Password
               </label>
-              <Link to="/reset-password" className="text-[12px] text-[var(--color-primary)] hover:underline">
+              <Link to="/reset-password" className="text-[12px] text-[#249D8F] hover:underline">
                 Forgot password?
               </Link>
             </div>
@@ -87,7 +87,7 @@ export default function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full h-10 px-3 rounded-lg text-[14px] text-[var(--color-text)] placeholder-[var(--color-text-tertiary)] bg-[var(--color-surface-2)] border border-[var(--color-border-strong)] focus:outline-none focus:border-[var(--color-primary)] focus:ring-[3px] focus:ring-[var(--color-primary)]/25 transition-colors"
+              className="w-full h-10 px-3 rounded-lg text-[14px] text-[#FDF0D5] placeholder-[#877F6C] bg-[#202022] border border-[#48484A] focus:outline-none focus:border-[#249D8F] focus:ring-[3px] focus:ring-[#249D8F]/25 transition-colors"
             />
           </div>
 
@@ -101,9 +101,9 @@ export default function Login() {
           </Button>
         </form>
 
-        <p className="text-center text-[13px] text-[var(--color-text-secondary)] pt-2 border-t border-[var(--color-border)]">
+        <p className="text-center text-[13px] text-[#C2B79E] pt-2 border-t border-[#38383A]">
           Don't have an account?{' '}
-          <Link to="/signup" className="text-[var(--color-primary)] hover:underline font-medium">
+          <Link to="/signup" className="text-[#249D8F] hover:underline font-medium">
             Create Employee Account
           </Link>
         </p>

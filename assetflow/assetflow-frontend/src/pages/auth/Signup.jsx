@@ -24,24 +24,24 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#000000] p-4 text-[#F5F5F7]">
-      <div className="w-full max-w-[420px] bg-[#1C1C1E] border border-[#38383A] rounded-[20px] p-8 shadow-[0_16px_48px_rgba(0,0,0,0.60)] space-y-6 animate-in fade-in zoom-in-95 duration-200">
+    <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg)] p-4 text-[var(--color-text)]">
+      <div className="w-full max-w-[420px] bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[20px] p-8 shadow-[0_16px_48px_rgba(0,0,0,0.12)] space-y-6 animate-in fade-in zoom-in-95 duration-200">
         
         {/* Brand Header */}
         <div className="flex flex-col items-center text-center space-y-2">
-          <div className="w-12 h-12 rounded-xl bg-[#202022] border border-[#38383A] flex items-center justify-center text-[#0A84FF] mb-1">
+          <div className="w-12 h-12 rounded-xl bg-[var(--color-surface-2)] border border-[var(--color-border)] flex items-center justify-center text-[var(--color-primary)] mb-1">
             <Package className="w-6 h-6" strokeWidth={1.75} />
           </div>
-          <h1 className="text-[28px] font-semibold leading-[1.2] text-[#F5F5F7] tracking-tight">
+          <h1 className="text-[28px] font-semibold leading-[1.2] text-[var(--color-text)] tracking-tight">
             Create Account
           </h1>
-          <p className="text-[14px] text-[#98989D]">
+          <p className="text-[14px] text-[var(--color-text-secondary)]">
             Sign up for employee equipment portal
           </p>
         </div>
 
         {signupError && (
-          <div className="p-3 bg-[#330C0A] border border-[#FF453A]/40 text-[#FF6961] rounded-lg text-[13px]">
+          <div className="p-3 bg-[var(--color-error-tint)] border border-[var(--color-error)]/40 text-[var(--color-error)] rounded-lg text-[13px]">
             {signupError.data?.error?.message || signupError.data?.message || 'Signup failed'}
           </div>
         )}
@@ -87,9 +87,9 @@ export default function Signup() {
           </Button>
         </form>
 
-        <p className="text-center text-[13px] text-[#98989D] pt-2 border-t border-[#38383A]">
+        <p className="text-center text-[13px] text-[var(--color-text-secondary)] pt-2 border-t border-[var(--color-border)]">
           Already have an account?{' '}
-          <Link to="/login" className="text-[#0A84FF] hover:underline font-medium">
+          <Link to="/login" className="text-[var(--color-primary)] hover:underline font-medium">
             Sign in
           </Link>
         </p>

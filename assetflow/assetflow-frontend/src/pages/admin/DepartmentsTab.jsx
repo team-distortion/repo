@@ -43,7 +43,7 @@ export default function DepartmentsTab() {
 
   if (loading) {
     return (
-      <div className="p-16 text-center text-[#98989D] text-[14px]">
+      <div className="p-16 text-center text-[var(--color-text-secondary)] text-[14px]">
         Loading department directory...
       </div>
     );
@@ -52,7 +52,7 @@ export default function DepartmentsTab() {
   if (error) {
     return (
       <div className="p-8 text-center">
-        <div className="bg-[#330C0A] border border-[#FF453A]/40 text-[#FF6961] p-4 rounded-xl max-w-md mx-auto text-[14px]">
+        <div className="bg-[var(--color-error-tint)] border border-[var(--color-error)]/40 text-[var(--color-error)] p-4 rounded-xl max-w-md mx-auto text-[14px]">
           <p className="font-semibold">Error Loading Departments</p>
           <p className="text-[13px] mt-1">{error}</p>
         </div>
@@ -65,23 +65,23 @@ export default function DepartmentsTab() {
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse whitespace-nowrap">
           <thead>
-            <tr className="h-11 border-b border-[#38383A] bg-[#202022]">
-              <th className="px-4 text-[12px] font-medium text-[#98989D] uppercase tracking-wider">Department Name</th>
-              <th className="px-4 text-[12px] font-medium text-[#98989D] uppercase tracking-wider">Department Head</th>
-              <th className="px-4 text-[12px] font-medium text-[#98989D] uppercase tracking-wider">Parent Department</th>
-              <th className="px-4 text-[12px] font-medium text-[#98989D] uppercase tracking-wider">Status</th>
+            <tr className="h-11 border-b border-[var(--color-border)] bg-[var(--color-surface-2)]">
+              <th className="px-4 text-[12px] font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Department Name</th>
+              <th className="px-4 text-[12px] font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Department Head</th>
+              <th className="px-4 text-[12px] font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Parent Department</th>
+              <th className="px-4 text-[12px] font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Status</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#38383A]">
+          <tbody className="divide-y divide-[var(--color-border)]">
             {departments.map((dept) => (
-              <tr key={dept.id} className="h-14 hover:bg-[#202022] transition-colors">
-                <td className="px-4 text-[14px] font-medium text-[#F5F5F7]">
+              <tr key={dept.id} className="h-14 hover:bg-[var(--color-surface-2)] transition-colors">
+                <td className="px-4 text-[14px] font-medium text-[var(--color-text)]">
                   {dept.name}
                 </td>
-                <td className="px-4 text-[14px] text-[#98989D]">
+                <td className="px-4 text-[14px] text-[var(--color-text-secondary)]">
                   {getUserName(dept.headUserId)}
                 </td>
-                <td className="px-4 text-[14px] text-[#98989D]">
+                <td className="px-4 text-[14px] text-[var(--color-text-secondary)]">
                   {getParentDeptName(dept.parentId)}
                 </td>
                 <td className="px-4">
@@ -91,7 +91,7 @@ export default function DepartmentsTab() {
             ))}
             {departments.length === 0 && (
               <tr>
-                <td colSpan={4} className="h-32 text-center text-[#6E6E73] text-[14px]">
+                <td colSpan={4} className="h-32 text-center text-[var(--color-text-tertiary)] text-[14px]">
                   No departments recorded in the system.
                 </td>
               </tr>
@@ -100,8 +100,8 @@ export default function DepartmentsTab() {
         </table>
       </div>
       
-      <div className="p-4 bg-[#202022] border-t border-[#38383A] text-[12px] text-[#98989D] flex items-center gap-2">
-        <div className="w-1.5 h-1.5 rounded-full bg-[#0A84FF]" />
+      <div className="p-4 bg-[var(--color-surface-2)] border-t border-[var(--color-border)] text-[12px] text-[var(--color-text-secondary)] flex items-center gap-2">
+        <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-primary)]" />
         <p>Department structures automatically populate routing in the Allocation and Transfer modules.</p>
       </div>
     </div>
